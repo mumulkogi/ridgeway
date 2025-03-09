@@ -1,0 +1,5 @@
+(library
+ (public_name hw1)
+ (name hw1)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test)))
