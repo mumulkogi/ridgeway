@@ -1,9 +1,9 @@
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let%test _ = Hw2.fib 3 = 2
+let%test _ = Hw2.fib 4 = 3
 let%test _ = Hw2.fib (-3) = -1
 
-let%test _ = Hw2.fib_opt 3 = 2
+let%test _ = Hw2.fib_opt 40 = 102334155
 let%test _ = Hw2.fib_opt (-3) = -1
 
 let%test _ = try let _ = Hw2.last [] in false with Failure msg -> msg = "The given list is empty"
