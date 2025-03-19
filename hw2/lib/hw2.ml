@@ -81,6 +81,15 @@ let compress (str: string): (int * char) list =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
+let rec merge (f: int -> int -> bool) (left: int list) (right: int list): 
+  int list =
+    match (left, right) with
+    | ([], tail) -> tail
+    | (head, []) -> head
+    | (head1 :: tail1), (head2 :: tail2) ->
+      if (f head1 head2) then head1 :: merge f tail1 (head2 :: tail2)
+      else head2 :: merge f (head1 :: tail1) tail2
+
 let split (values: int list): (int list * int list) = 
   let rec split_helper (values: int list) (left: int list) (right: int list): 
     (int list * int list) =
@@ -90,15 +99,6 @@ let split (values: int list): (int list * int list) =
       | head :: second :: tail ->
         split_helper tail (head :: left) (second :: right)
   in split_helper values [] []
-
-let rec merge (f: int -> int -> bool) (left: int list) (right: int list): 
-  int list =
-    match (left, right) with
-    | ([], tail) -> tail
-    | (head, []) -> head
-    | (head1 :: tail1), (head2 :: tail2) ->
-      if (f head1 head2) then head1 :: merge f tail1 (head2 :: tail2)
-      else head2 :: merge f (head1 :: tail1) tail2
 
 let rec sort (f: int -> int -> bool) (values: int list): int list =
   match values with
