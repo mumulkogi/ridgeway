@@ -25,9 +25,12 @@ let%test _ = Hw2.is_palindrome [1;2;3;1] = false
 let%test _ = Hw2.is_palindrome [1;2;3;2;1] = true
 let%test _ = Hw2.is_palindrome [1;2;3;4;1] = false
 
+let%test _ = Hw2.compress "" = []
 let%test _ = Hw2.compress "Z" = [(1, 'Z')]
 let%test _ = Hw2.compress "AA" = [(2, 'A')]
 let%test _ = Hw2.compress "AB" = [(1, 'A'); (1, 'B')]
+let%test _ = Hw2.compress "AAB" = [(2, 'A'); (1, 'B')]
+let%test _ = Hw2.compress "ABB" = [(1, 'A'); (2, 'B')]
 let%test _ = Hw2.compress "GGGHH" = [(3, 'G'); (2, 'H')]
 let%test _ = Hw2.compress "abba" = [(1, 'a'); (2, 'b'); (1, 'a')]
 

@@ -59,7 +59,7 @@ let rec is_palindrome (values: int list): bool =
   match values with
     | [] -> true
     | _ :: [] -> true
-    | head :: second :: [] -> (head = second)
+    | head :: tail :: [] -> (head = tail)
     | head :: tail -> (
       (head == last tail) &&
       match (rev tail) with
@@ -69,11 +69,21 @@ let rec is_palindrome (values: int list): bool =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let compress_helper (values: char list): (int * char) list = 
+let increment_or_push (tuple: (int * char)) (value: char): (int * char) list =
+  match tuple with
+    | (occurrence, letter) ->
+      if letter = value then [(occurrence + 1, letter)]
+      else [(1, value); (occurrence, letter)]
+
+let rec compress_helper (values: char list): (int * char) list = 
   match values with
     | [] -> []
     | head :: [] -> [(1, head)]
-    | _ :: _ -> failwith "Not Implemented!"
+    | head :: tail :: [] -> increment_or_push ((1, tail)) head
+    | head :: tail -> 
+      match (compress_helper tail) with 
+        | [] -> failwith "Not Implemented!"
+        | hz :: tz -> (increment_or_push hz head) @ tz
 
 let compress (str: string): (int * char) list = 
   let values: char list = List.of_seq (String.to_seq str) in
@@ -86,9 +96,9 @@ let rec merge (f: int -> int -> bool) (left: int list) (right: int list):
     match (left, right) with
     | ([], tail) -> tail
     | (head, []) -> head
-    | (head1 :: tail1), (head2 :: tail2) ->
-      if (f head1 head2) then head1 :: merge f tail1 (head2 :: tail2)
-      else head2 :: merge f (head1 :: tail1) tail2
+    | (hl :: tl), (hr :: tr) ->
+      if (f hl hr) then hl :: merge f tl (hr :: tr)
+      else hr :: merge f (hl :: tl) tr
 
 let split (values: int list): (int list * int list) = 
   let rec split_helper (values: int list) (left: int list) (right: int list): 
@@ -96,8 +106,8 @@ let split (values: int list): (int list * int list) =
     match values with 
       | [] -> (left, right)
       | head :: [] -> (head :: left, right)
-      | head :: second :: tail ->
-        split_helper tail (head :: left) (second :: right)
+      | head1 :: head2 :: tail ->
+        split_helper tail (head1 :: left) (head2 :: right)
   in split_helper values [] []
 
 let rec sort (f: int -> int -> bool) (values: int list): int list =
