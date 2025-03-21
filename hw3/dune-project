@@ -1,0 +1,18 @@
+(lang dune 2.9)
+
+(name hw3_test)
+
+(generate_opam_files true)
+
+(source
+ (github mumulkogi/ridgeway))
+
+(authors "Mumul Kogi (https://github.com/mumulkogi)")
+
+(license LICENSE)
+
+(package
+ (name hw3_test)
+ (depends ocaml))
+
+; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

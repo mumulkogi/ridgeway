@@ -1,0 +1,5 @@
+(library
+ (public_name hw3_test)
+ (name hw3_test)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test)))
