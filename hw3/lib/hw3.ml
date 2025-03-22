@@ -88,7 +88,10 @@ let lex (str: string): token =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let parse (_: string): expr =
+let parse_helper (_: string list): expr =
   failwith "Not Implemented!"
+
+let parse (str: string): expr =
+  parse_helper (String.split_on_char ' ' str)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

@@ -37,6 +37,7 @@ let%test _ =
 
 (* parse *)
 let%test _ = Hw3.parse "let x = 1 in 4 + x" = LetIn ("x", Num "1", Plus (Num "4", Id "x"))
+let%test _ = Hw3.parse "let t = 1 - 1 in tt" = LetIn ("t", Minus (Num "1", Num "1"), Id "tt")
 
 let%test _ =
   try
