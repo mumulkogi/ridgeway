@@ -104,7 +104,11 @@ let reduce (stack: parse_stack_elem list) (lookahead: parse_stack_elem):
 
     (* RULE #1 *)
 
-    (* TODO: ... *)
+    | E (expr2) :: T (OP_PLUS) :: E (expr1) :: tail ->
+      E (Plus (expr1, expr2)) :: tail
+
+    | E (expr2) :: T (OP_MINUS) :: E (expr1) :: tail ->
+      E (Minus (expr1, expr2)) :: tail
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
