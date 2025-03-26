@@ -94,10 +94,36 @@ let rec generate_tokens (sl: string list): token list =
     | [] -> []
     | head :: tail -> [lex head] @ generate_tokens tail
 
+let reduce (stack: parse_stack_elem list): parse_stack_elem list =
+  match stack with
+    | [] -> []
+    | T (IDENT id) :: [] 
+      -> [E (Id id)]
+    | T (NUMBER num) :: [] 
+      -> [E (Num num)]
+    | E (expr1) :: T (OP_PLUS) :: E (expr2) :: [] 
+      -> [E (Plus (expr1, expr2))]
+    | E (expr1) :: T (OP_MINUS) :: E (expr2) :: [] 
+      -> [E (Minus (expr1, expr2))]
+    | T (KW_LET) :: T (IDENT id) :: T (OP_EQ) 
+      :: E (expr1) :: T (KW_IN) :: E (expr2) :: []
+      -> [E (LetIn (id, expr1, expr2))]
+    | _ -> failwith "Not Implemented!"
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
+let rec parse_helper (tokens: token list) (stack: parse_stack_elem list): 
+  expr =
+  match tokens with
+    | [] -> (
+        match stack with
+          | E expr :: [] -> expr
+          | _ -> failwith ("Lexing error: " ^ "???")
+      )
+    | head :: tail -> parse_helper tail (reduce ((T head) :: stack))
+
 let parse (str: string): expr =
-  let _: token list = generate_tokens (String.split_on_char ' ' str) in
-  failwith "Not Implemented!"
+  let tokens: token list = generate_tokens (String.split_on_char ' ' str) in
+  parse_helper tokens []
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

@@ -40,6 +40,8 @@ let%test _ =
 
 let%test _ = Hw3.generate_tokens ["let"; "x"; "="; "1"; "in";] = [KW_LET; IDENT "x"; OP_EQ; NUMBER "1"; KW_IN]
 
+let%test _ = Hw3.parse "x" = Id "x"
+
 let%test _ = Hw3.parse "let x = 1 in 4 + x" = LetIn ("x", Num "1", Plus (Num "4", Id "x"))
 let%test _ = Hw3.parse "let t = 1 - 1 in tt" = LetIn ("t", Minus (Num "1", Num "1"), Id "tt")
 
