@@ -104,23 +104,15 @@ let reduce (stack: parse_stack_elem list) (lookahead: parse_stack_elem):
 
     (* RULE #1 *)
 
-    | E (expr2) :: T (KW_IN) :: E (expr1) :: T (OP_EQ) 
-      :: T (IDENT id) :: T (KW_LET) :: tail ->
-      E (LetIn (id, expr1, expr2)) :: tail
-
-    | E (expr2) :: T (OP_PLUS) :: E (expr1) :: tail ->
-      E (Plus (expr1, expr2)) :: tail
-
-    | E (expr2) :: T (OP_MINUS) :: E (expr1) :: tail ->
-      E (Minus (expr1, expr2)) :: tail
+    (* TODO: ... *)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
     (* RULE #2 *)
 
     | T (IDENT id) :: tail ->
-      if lookahead = T (OP_EQ) then stack              (* SHIFT *)
-      else E (Id id) :: tail                           (* REDUCE *)
+      if lookahead = T (OP_EQ) then stack                  (* SHIFT *)
+      else E (Id id) :: tail                               (* REDUCE *)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
