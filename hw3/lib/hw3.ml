@@ -45,6 +45,7 @@ let transition (s: state) (c: char): state =
     | (Q1, 'a'..'z') -> if c = 'e' then Q2 else Q4
     | (Q2, 'a'..'z') -> if c = 't' then Q3 else Q4
     | (Q3, 'a'..'z') -> Q4
+    | (Q4, 'a'..'z') -> Q4
     | (Q7, 'a'..'z') -> if c = 'n' then Q8 else Q4
     | (_, 'A'..'Z') | (_, '_') | (_, '\'') -> if s = Q0 then QE else Q4
 

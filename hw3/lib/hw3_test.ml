@@ -6,6 +6,7 @@ let%test _ = Hw3.lex "in" = KW_IN
 
 let%test _ = Hw3.lex "lets" = IDENT "lets"
 let%test _ = Hw3.lex "lETS" = IDENT "lETS"
+let%test _ = Hw3.lex "tt" = IDENT "tt"
 
 let%test _ = Hw3.lex "=" = OP_EQ
 let%test _ = Hw3.lex "+" = OP_PLUS
