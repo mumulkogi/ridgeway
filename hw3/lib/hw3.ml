@@ -88,10 +88,15 @@ let lex (str: string): token =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let parse_helper (_: string list): expr =
-  failwith "Not Implemented!"
+let rec generate_tokens (sl: string list): token list =
+  match sl with
+    | [] -> []
+    | head :: tail -> [lex head] @ generate_tokens tail
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let parse (str: string): expr =
-  parse_helper (String.split_on_char ' ' str)
+  let _: token list = generate_tokens (String.split_on_char ' ' str) in
+  failwith "Not Implemented!"
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
