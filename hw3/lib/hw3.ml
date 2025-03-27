@@ -96,12 +96,12 @@ let rec generate_tokens (sl: string list): token list =
     | head :: tail -> [lex head] @ generate_tokens tail
 
 (*
-  #use "lib/hw3.ml";;
-  #trace reduce;;
+  #use "lib/hw3.ml";; 
+  #trace reduce;; 
   parse "let t = 1 - 1 in tt";;
 *)
 
-let reduce (stack: parse_stack_elem list) (lookahead: parse_stack_elem): 
+let rec reduce (stack: parse_stack_elem list) (lookahead: parse_stack_elem): 
   parse_stack_elem list =
   match stack with
     | [] -> []
@@ -139,7 +139,11 @@ let reduce (stack: parse_stack_elem list) (lookahead: parse_stack_elem):
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-    | T (NUMBER num) :: tail -> E (Num num) :: tail                (* REDUCE *)
+    | T (NUMBER num) :: tail ->
+      if lookahead = T (KW_IN) then 
+        reduce (E (Num num) :: tail) N
+      else 
+        E (Num num) :: tail
     | _ -> stack                                                   (*  SHIFT *)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
