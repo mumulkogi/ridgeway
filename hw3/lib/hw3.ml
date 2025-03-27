@@ -106,16 +106,22 @@ let reduce (stack: parse_stack_elem list) (lookahead: parse_stack_elem):
 
     | E (expr2) :: T (KW_IN) :: E (expr1) ::
       T (OP_EQ) :: T (IDENT id) :: T (KW_LET) :: tail ->
-      if lookahead != N then stack                                 (*  SHIFT *)
-      else E (LetIn (id, expr1, expr2)) :: tail                    (* REDUCE *)
+      if lookahead = N || lookahead = T (KW_IN) then                        
+        E (LetIn (id, expr1, expr2)) :: tail                       (* REDUCE *)
+      else
+        stack                                                      (*  SHIFT *)
 
     | E (expr2) :: T (OP_PLUS) :: E (expr1) :: tail ->
-      if lookahead != N then stack                                 (*  SHIFT *)
-      else E (Plus (expr1, expr2)) :: tail                         (* REDUCE *)
+      if lookahead = N || lookahead = T (KW_IN) then                        
+        E (Plus (expr1, expr2)) :: tail                            (* REDUCE *)
+      else
+        stack                                                      (*  SHIFT *)
 
     | E (expr2) :: T (OP_MINUS) :: E (expr1) :: tail ->
-      if lookahead != N then stack                                 (*  SHIFT *)
-      else E (Minus (expr1, expr2)) :: tail                        (* REDUCE *)
+      if lookahead = N || lookahead = T (KW_IN) then                        
+        E (Minus (expr1, expr2)) :: tail                           (* REDUCE *)
+      else
+        stack                                                      (*  SHIFT *)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
