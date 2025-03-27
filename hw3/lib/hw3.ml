@@ -97,7 +97,8 @@ let rec generate_tokens (sl: string list): token list =
 
 (*
   #use "lib/hw3.ml";; 
-  #trace reduce;; 
+  #trace reduce;;
+  parse "let x = 1 in 4 + x";;
   parse "let t = 1 - 1 in tt";;
 *)
 
@@ -140,10 +141,15 @@ let rec reduce (stack: parse_stack_elem list) (lookahead: parse_stack_elem):
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
     | T (NUMBER num) :: tail ->
-      if lookahead = T (KW_IN) then 
-        reduce (E (Num num) :: tail) N
-      else 
-        E (Num num) :: tail
+      if lookahead != T (OP_PLUS) && lookahead != T (OP_MINUS) then  
+        let new_stack: parse_stack_elem list 
+          = reduce (E (Num num) :: tail) lookahead in              (* REDUCE *)
+        if new_stack != stack then
+          reduce new_stack lookahead                               (* REDUCE *)
+        else 
+          new_stack                                                (* REDUCE *)
+      else
+        stack
     | _ -> stack                                                   (*  SHIFT *)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

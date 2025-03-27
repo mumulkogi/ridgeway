@@ -52,6 +52,7 @@ let%test _ = Hw3.parse "x + y - 4" = Plus (Id "x", Minus (Id "y", Num "4"))
 let%test _ = Hw3.parse "let x = 1 in y" = LetIn ("x", Num "1", Id "y")
 let%test _ = Hw3.parse "let x = 1 in 4 + x" = LetIn ("x", Num "1", Plus (Num "4", Id "x"))
 let%test _ = Hw3.parse "let t = 1 - 1 in tt" = LetIn ("t", Minus (Num "1", Num "1"), Id "tt")
+let%test _ = Hw3.parse "let t = 1 + 2 - 3 in tt" = LetIn ("t", Plus (Num "1", Minus (Num "2", Num "3")), Id "tt")
 
 let%test _ =
   try
