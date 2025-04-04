@@ -36,10 +36,32 @@ let%test _ =
     false
   with
   | Failure msg -> msg = "Free identifier: omo"
-  |_ -> false
+  | _ -> false
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let%test _ = Hw5.interp (ParserMain.parse "let oxo = 11 in oxo + 22") [] = NumV 33
+let%test _ = Hw5.interp 
+  (ParserMain.parse "1") [] = 
+  NumV 1
+
+let%test _ = Hw5.interp 
+  (ParserMain.parse "1 + 2") [] = 
+  NumV 3
+
+let%test _ = Hw5.interp 
+  (ParserMain.parse "3 - 4") [] 
+  = NumV (-1)
+
+let%test _ = Hw5.interp 
+  (ParserMain.parse "let oxo = 11 in oxo + 22") [] 
+  = NumV 33
+
+let%test _ = Hw5.interp 
+  (ParserMain.parse "let x = 2 in let y = 3 in let z = x + y in z") [] 
+  = NumV 5
+
+let%test _ = Hw5.interp 
+  (ParserMain.parse "let x = 5 in let x = x + 1 in let x = x + 3 in x") [] 
+  = NumV 9
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
