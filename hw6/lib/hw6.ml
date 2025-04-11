@@ -24,8 +24,8 @@ let rec interp_expr (mf: Fstore.t) (mv: Store.t) (e: Ast.expr): Store.value =
       let (params, e) = Fstore.find fi mf in
       let kvs: ((string * Ast.expr) list) = List.combine params args in
       let mv_: Store.t = List.fold_left 
-        (fun mv (k, v) -> Store.add k (interp_expr mf mv v) mv) [] kvs in
-      interp_expr mf mv_ e 
+        (fun mv__ (k, v) -> Store.add k (interp_expr mf mv v) mv__) [] kvs in
+      interp_expr mf mv_ e
   
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
