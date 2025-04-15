@@ -12,6 +12,16 @@ let%test _ = Fstore.add
 
 let%test _ = Fstore.add 
   "sub" 
+  ["c"; "d"] 
+  (Sub ((Id "c"), (Id "d"))) 
+  [] =
+
+  [
+    ("sub", (["c"; "d"], (Sub ((Id "c"), (Id "d")))))
+  ]
+
+let%test _ = Fstore.add 
+  "sub" 
   ["a"; "b"] 
   (Sub ((Id "a"), (Id "b")))
   [
@@ -107,6 +117,16 @@ let%test _ = Hw6.interp_expr
   (Call ("add", [(Id "owo"); (Id "omo")]))
   = 
   NumV 25
+
+let%test _ = try
+  let _ = Hw6.interp_expr 
+    [("add", (["a"; "b"], (Add ((Id "a"), (Id "b")))))] 
+    [] 
+    (Call ("add", [Num 2])) in
+    false
+  with
+    | Failure msg -> msg = "Unmatched number of arguments"
+    | _ -> false
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 

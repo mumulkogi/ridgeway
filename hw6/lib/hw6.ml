@@ -22,10 +22,16 @@ let rec interp_expr (mf: Fstore.t) (mv: Store.t) (e: Ast.expr): Store.value =
       interp_expr mf (Store.add k (interp_expr mf mv e1) mv) e2
     | Ast.Call (fi, args) -> 
       let (params, e) = Fstore.find fi mf in
-      let kvs: ((string * Ast.expr) list) = List.combine params args in
-      let mv_: Store.t = List.fold_left 
-        (fun mv__ (k, v) -> Store.add k (interp_expr mf mv v) mv__) [] kvs in
-      interp_expr mf mv_ e
+      if List.length params <> List.length args then
+        failwith "Unmatched number of arguments"
+      else
+        (* Map each function parameter to a corresponding argument *)
+        let kvs: ((string * Ast.expr) list) = List.combine params args in
+
+        (* Construct a new 'Store' for this function call *)
+        let new_mv: Store.t = List.fold_left
+          (fun acc (k, v) -> Store.add k (interp_expr mf mv v) acc) [] kvs in
+        interp_expr mf new_mv e
   
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
