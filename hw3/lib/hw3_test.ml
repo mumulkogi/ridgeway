@@ -38,7 +38,7 @@ let%test _ =
 
 (* parse *)
 
-let%test _ = Hw3.generate_tokens ["let"; "x"; "="; "1"; "in";] = [KW_LET; IDENT "x"; OP_EQ; NUMBER "1"; KW_IN]
+let%test _ = Hw3.generate_tokens ["let"; "x"; "="; "1"; "in"] = [KW_LET; IDENT "x"; OP_EQ; NUMBER "1"; KW_IN]
 
 let%test _ = Hw3.parse "x" = Id "x"
 let%test _ = Hw3.parse "4" = Num "4"
