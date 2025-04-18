@@ -9,12 +9,26 @@ let%test _ = Store.add
   [("owo", NumV 949)]
 
 let%test _ = Store.add 
+  "owo" (NumV 949) [("uwu", NumV 939)] = 
+  [("owo", NumV 949); ("uwu", NumV 939)]
+
+let%test _ = Store.add 
   "owo" (NumV 959) [("uwu", NumV 929); ("owo", NumV 939)] = 
-  [("uwu", NumV 929); ("owo", NumV 959)]
+  [("owo", NumV 959); ("uwu", NumV 929);]
 
 let%test _ = Store.add 
   "owo" (NumV 969) [("uwu", NumV 929); ("owo", NumV 939); ("uwo", NumV 949)] = 
-  [("uwu", NumV 929); ("owo", NumV 969); ("uwo", NumV 949)]
+  [("owo", NumV 969); ("uwu", NumV 929); ("uwo", NumV 949)]
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test _ = Store.remove 
+  "owo" [("owo", NumV 939)] = 
+  []
+
+let%test _ = Store.remove 
+  "owo" [("uwu", NumV 929); ("owo", NumV 939)] = 
+  [("uwu", NumV 929);]
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 

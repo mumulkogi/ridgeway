@@ -1,0 +1,14 @@
+(library
+ (public_name hw7_test)
+ (name hw7_test)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test)))
+
+; When <mode> is unqualified, Dune will assume that 
+; the current directory’s subdirectories are part of the same group of directories. 
+; In particular, Dune will simultaneously scan all these directories 
+; when looking for OCaml/Reason files. 
+; 
+; This allows you to split a library between several directories.
+
+(include_subdirs unqualified)

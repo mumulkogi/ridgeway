@@ -1,11 +1,5 @@
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-(**
-  @param e AST의 노드
-  @param m 추상 메모리
-
-  @return 결과 값
-*)
 let rec interp (e: Ast.expr) (m: Store.t): Store.value =
   match e with
     | Ast.Num n -> NumV n
