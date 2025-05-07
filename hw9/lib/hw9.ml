@@ -42,11 +42,14 @@ let rec interp (e: Ast.expr) (m: Store.t): Store.value =
         )
       )
     | Ast.Lambda (x, b) -> ClosureV (x, b, m)
-    | Ast.Cond (ec, _, _) -> 
+    | Ast.Cond (ec, e1, e2) -> 
       let vc: Store.value = interp ec m in
       (
         match vc with
-          | BoolV _ -> failwith "Not Implemented!"
+          | BoolV b -> 
+              let v1: Store.value = interp e1 m in
+              let v2: Store.value = interp e2 m in
+              if b then v1 else v2
           | _ -> failwith (
             Format.asprintf "Not a bool: %a" 
             Ast.pp ec
