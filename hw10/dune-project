@@ -1,0 +1,20 @@
+(lang dune 2.9)
+
+(name hw10_test)
+
+(generate_opam_files false)
+
+(source
+ (github mumulkogi/ridgeway))
+
+(authors "Mumul Kogi (https://github.com/mumulkogi)")
+
+(license LICENSE)
+
+(package
+ (name hw10_test)
+ (depends ocaml))
+
+(using menhir 2.1)
+
+; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
