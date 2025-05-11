@@ -110,11 +110,17 @@ let%test "HwX_interp_letin_2" = HwX.interp
 
 let%test "HwX_interp_rletin_0" = HwX.interp
   (ParserMain.parse 
-    "let rec f = \
-    (fun x -> if x < 1 then 0 else x + f (x - 1)) \
-    in f 10"
+    "let rec f = (fun x -> if x < 1 then 0 else x + (f (x - 1))) in f 10"
   ) [] 
   = NumV 55
+
+let%test "HwX_interp_rletin_1" =
+  try
+    let _ = HwX.interp (ParserMain.parse "let rec f = 1 in f 1") [] in 
+    false
+  with
+    | Failure msg -> msg = "Not a function: 1" 
+    | _ -> false
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
