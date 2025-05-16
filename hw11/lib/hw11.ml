@@ -19,7 +19,7 @@ let rec interp_expr (e: Ast.expr) (s: Store.t): Store.value =
                 | Ast.Sub _ -> NumV (n1 - n2)
                 | Ast.Lt _ -> BoolV (n1 < n2)
                 | Ast.Gt _ -> BoolV (n1 > n2)
-                | _ -> failwith "Unreachable!"
+                | _ -> failwith "Unreachable!" [@coverage off]
             )
           | _ -> failwith (
             Format.asprintf "Not a number: %a"
@@ -80,12 +80,18 @@ let rec interp_expr (e: Ast.expr) (s: Store.t): Store.value =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let interp_stmt (_: Ast.stmt) (_: Store.t): Store.t =
-  failwith "Not Implemented!"
+let interp_stmt (z: Ast.stmt) (s: Store.t): Store.t =
+  match z with
+    | Ast.AssignStmt (x, e) ->
+      Store.add x (interp_expr e s) s
+    | Ast.IfStmt (_, _, _) ->
+      failwith "Not implemented!"
+    | Ast.LoopStmt (_, _) -> 
+      failwith "Not implemented!"
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let interp_prog (_: Ast.prog): Store.t =
-  failwith "Not Implemented!"
+  failwith "Not implemented!"
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

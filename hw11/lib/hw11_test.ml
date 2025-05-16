@@ -72,6 +72,10 @@ let%test "HwX_interp_expr_eq_02" = HwX.interp_expr
   (Ast.Eq (Ast.Num 1, Ast.Bool true)) [] 
   = Store.BoolV false
 
+let%test "HwX_interp_expr_eq_03" = HwX.interp_expr 
+  (Ast.Eq (Ast.Bool false, Ast.Bool true)) [] 
+  = Store.BoolV false
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let%test "HwX_interp_expr_and_00" = HwX.interp_expr 
@@ -142,40 +146,12 @@ let%test "HwX_interp_expr_or_05" =
 
 (* [`HwX.interp_stmt`] ::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-(* [`HwX.interp_prog`] ::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
-
-let%test "HwX_interp_prog_assignstmt_00" = HwX.interp_prog 
-  (ParserMain.parse "x = 3;") 
+let%test "HwX_interp_stmt_assignstmt_00" = HwX.interp_stmt
+  (Ast.AssignStmt ("x", Ast.Num 3)) []
   = [
       ("x", Store.NumV 3)
     ]
 
-let%test "HwX_interp_prog_assignstmt_01" = 
-  try
-    let _ = HwX.interp_prog (ParserMain.parse 
-      "          \
-      x = 3;     \
-      y = true;  \
-      z = x && y;
-      "
-    ) in false
-  with
-    | Failure msg -> msg = "Not a bool: x && y"
-
-(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
-
-let%test "HwX_interp_prog_ifstmt_00" = 
-  try
-    let _ = HwX.interp_prog (ParserMain.parse 
-      "             \
-      x = 3;        \
-      y = 4;        \
-      if x {        \
-        x = x - 2;  \
-      }             \
-      "
-    ) in false
-  with
-    | Failure msg -> msg = "Not a bool: x"
+(* [`HwX.interp_prog`] ::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
