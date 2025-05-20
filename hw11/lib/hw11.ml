@@ -39,12 +39,12 @@ let rec interp_expr (e: Ast.expr) (s: Store.t): Store.value =
       let v1: Store.value = interp_expr e1 s in
       (
         match v1 with
-          | (BoolV b1) ->
+          | BoolV b1 ->
             if b1 then (
               let v2: Store.value = interp_expr e2 s in
               (
                 match v2 with
-                  | (BoolV b2) -> BoolV (b1 == b2)
+                  | BoolV b2 -> BoolV (b1 == b2)
                   | _ -> failwith (
                     Format.asprintf "Not a bool: %a"
                     Ast.pp_expr e
@@ -60,12 +60,12 @@ let rec interp_expr (e: Ast.expr) (s: Store.t): Store.value =
       let v1: Store.value = interp_expr e1 s in
       (
         match v1 with
-          | (BoolV b1) ->
+          | BoolV b1 ->
             if not b1 then (
               let v2: Store.value = interp_expr e2 s in
               (
                 match v2 with
-                  | (BoolV _) -> v2
+                  | BoolV _ -> v2
                   | _ -> failwith (
                     Format.asprintf "Not a bool: %a"
                     Ast.pp_expr e
@@ -80,18 +80,46 @@ let rec interp_expr (e: Ast.expr) (s: Store.t): Store.value =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let interp_stmt (z: Ast.stmt) (s: Store.t): Store.t =
+let rec interp_stmt (z: Ast.stmt) (s: Store.t): Store.t =
   match z with
     | Ast.AssignStmt (x, e) ->
-      Store.add x (interp_expr e s) s
-    | Ast.IfStmt (_, _, _) ->
-      failwith "Not implemented!"
-    | Ast.LoopStmt (_, _) -> 
-      failwith "Not implemented!"
+      let v: Store.value = interp_expr e s in
+      Store.add x v s
+    | Ast.IfStmt (e, zl1, zl2) ->
+      let v: Store.value = interp_expr e s in
+      (
+        match v with
+          | BoolV b -> (
+              if b then interp_stmts zl1 s
+              else interp_stmts zl2 s
+            )
+          | _ -> failwith (
+            Format.asprintf "Not a bool: %a"
+            Ast.pp_expr e
+          )
+      )
+    | Ast.LoopStmt (e, zl) -> 
+      let v: Store.value = interp_expr e s in
+      (
+        match v with
+          | BoolV b -> (
+              if b then (
+                let s1: Store.t = interp_stmts zl s in
+                interp_stmt z s1
+              ) else s
+            )
+          | _ -> failwith (
+            Format.asprintf "Not a bool: %a"
+            Ast.pp_expr e
+          )
+      )
+
+and interp_stmts (zl: Ast.stmt list) (s: Store.t): Store.t =
+  List.fold_left (fun s z -> interp_stmt z s) s zl
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let interp_prog (_: Ast.prog): Store.t =
-  failwith "Not implemented!"
+let interp_prog (p: Ast.prog): Store.t =
+  let Ast.Program zl = p in interp_stmts zl []
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

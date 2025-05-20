@@ -154,4 +154,69 @@ let%test "HwX_interp_stmt_assignstmt_00" = HwX.interp_stmt
 
 (* [`HwX.interp_prog`] ::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
+let%test "HwX_interp_prog_00" = HwX.interp_prog
+  (ParserMain.parse "x = 3;")
+  = [
+      ("x", Store.NumV 3)
+    ]
+
+let%test "HwX_interp_prog_01" = HwX.interp_prog
+  (ParserMain.parse "x = 1; y = 2;")
+  = [
+      ("y", Store.NumV 2);
+      ("x", Store.NumV 1);
+    ]
+
+let%test "HwX_interp_prog_02" = 
+  try
+    let _ = HwX.interp_prog 
+      (ParserMain.parse "x = 3; y = true; z = x && y;")
+    in false
+  with
+    | Failure msg -> msg = "Not a bool: x && y"
+
+let%test "HwX_interp_prog_03" = HwX.interp_prog
+  (ParserMain.parse "x = 1; y = 2; if (x < y) { x = y; }")
+  = [
+      ("x", Store.NumV 2);
+      ("y", Store.NumV 2);
+    ]
+
+let%test "HwX_interp_prog_04" = HwX.interp_prog
+  (ParserMain.parse "x = 1; y = 2; if (x > y) { x = y; } else { y = x; }")
+  = [
+      ("y", Store.NumV 1);
+      ("x", Store.NumV 1);
+    ]
+
+let%test "HwX_interp_prog_05" = 
+  try
+    let _ = HwX.interp_prog 
+      (ParserMain.parse "x = 0; if (0) { x = 1; }")
+    in false
+  with
+    | Failure msg -> msg = "Not a bool: 0"
+
+let%test "HwX_interp_prog_06" = HwX.interp_prog
+  (ParserMain.parse "x = 5; y = 0; while (x < 0) { y = y + x; x = x - 1; }")
+  = [
+      ("y", Store.NumV 0);
+      ("x", Store.NumV 5);
+    ]
+
+let%test "HwX_interp_prog_07" = HwX.interp_prog
+  (ParserMain.parse "x = 5; y = 0; while (x > 0) { y = y + x; x = x - 1; }")
+  = [
+      ("x", Store.NumV 0);
+      ("y", Store.NumV 15);
+    ]
+
+let%test "HwX_interp_prog_08" = 
+  try
+    let _ = HwX.interp_prog 
+      (ParserMain.parse "x = 0; while (0) { x = 1; }")
+    in false
+  with
+    | Failure msg -> msg = "Not a bool: 0"
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

@@ -3,7 +3,8 @@
  (name hw11_test)
  (inline_tests)
  (preprocess (pps ppx_inline_test))
- 
+
+; eval $(opam env --switch=5.1.1)
 ; dune runtest --instrument-with bisect_ppx --force
 ; bisect-ppx-report summary
  (instrumentation (backend bisect_ppx))
