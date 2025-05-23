@@ -1,0 +1,19 @@
+(library
+ (public_name hw12_test)
+ (name hw12_test)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test))
+ 
+; dune runtest --instrument-with bisect_ppx --force
+; bisect-ppx-report summary
+ (instrumentation (backend bisect_ppx))
+)
+
+; When <mode> is unqualified, Dune will assume that 
+; the current directory’s subdirectories are part of the same group of directories. 
+; In particular, Dune will simultaneously scan all these directories 
+; when looking for OCaml/Reason files. 
+; 
+; This allows you to split a library between several directories.
+
+(include_subdirs unqualified)
