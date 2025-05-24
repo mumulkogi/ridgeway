@@ -10,6 +10,7 @@
 ; polluting the top-level namespace will make your library unusable 
 ; with other libraries if there is a module name clash.
 ; (wrapped true)
+
  (inline_tests)
  (preprocess (pps ppx_inline_test))
 
