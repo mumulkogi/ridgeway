@@ -4,9 +4,13 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
   let (z, m) = zm in
   match e with
     | Ast.Num n -> NumV n
+
     | Ast.Ref x -> AddrV (Env.find x z)
+
     | Ast.Id x -> Mem.find (Env.find x z) m
+  
     | Ast.Bool b -> BoolV b
+
     | Ast.Add (e1, e2) 
     | Ast.Sub (e1, e2)
     | Ast.Lt (e1, e2)
@@ -28,6 +32,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
             Ast.pp_expr e
           )
       )
+
     | Ast.Eq (e1, e2) ->
       let v1: Value.t = interp_expr e1 zm in
       let v2: Value.t = interp_expr e2 zm in
@@ -38,6 +43,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
           | (AddrV a1, AddrV a2) -> BoolV (a1 == a2)
           | _ -> BoolV false
       )
+
     | Ast.And (e1, e2) ->
       let v1: Value.t = interp_expr e1 zm in
       (
@@ -59,6 +65,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
             Ast.pp_expr e
           )
       )
+
     | Ast.Or (e1, e2) ->
       let v1: Value.t = interp_expr e1 zm in
       (
@@ -91,6 +98,33 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
       let v: Value.t = interp_expr e zm in
       let a: Env.addr = AddrManager.new_addr () in
       ((Env.add x a z), (Mem.add a v m))
+
+    | Ast.StoreStmt (e1, e2) ->
+      let v1: Value.t = interp_expr e1 zm in
+      (
+        match v1 with
+          | AddrV a ->
+            let v2: Value.t = interp_expr e2 zm in
+            (z, (Mem.add a v2 m))
+          | _ -> failwith (
+            Format.asprintf "Not an address: %a"
+            Ast.pp_expr e1
+          )
+      )
+
+    | Ast.LoadStmt (x, e) ->
+      let ax: Env.addr = Env.find x z in
+      (
+        match (interp_expr e zm) with
+          | AddrV ae ->
+            let v: Value.t = Mem.find ae m in 
+            (z, (Mem.add ax v m))
+          | _ -> failwith (
+            Format.asprintf "Not an address: %a"
+            Ast.pp_expr e
+          )
+      )
+
     | Ast.IfStmt (e, sl1, sl2) ->
       let v: Value.t = interp_expr e zm in
       (
@@ -103,6 +137,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
             Ast.pp_expr e
           )
       )
+
     | Ast.LoopStmt (e, sl) -> 
       let v: Value.t = interp_expr e zm in
       (
@@ -119,6 +154,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
             Ast.pp_expr e
           )
       )
+
     | _ -> failwith "Not Implemented!"
 
 and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
@@ -128,9 +164,20 @@ and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
+let rec interp_fundef (d: Ast.def) (u: Fstore.t): Fstore.t =
+  match d with
+    | Ast.FunDef (f, x, sl) -> Fstore.add f x sl u
+
+and interp_fundefs (dl: Ast.def list) (u: Fstore.t): Fstore.t =
+  let acc: Fstore.t = u in
+  List.fold_left (fun acc d -> interp_fundef d acc) acc dl
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
 let interp_prog (p: Ast.prog): (Env.t * Mem.t) =
   let _: unit = AddrManager.init () in
-  let (Ast.Program (_, _)) = p in
-  failwith "Not Implemented!"
+  let (Ast.Program (dl, sl)) = p in
+  let u: Fstore.t = interp_fundefs dl [] in
+  interp_stmts sl u ([], [])
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

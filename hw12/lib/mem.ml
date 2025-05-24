@@ -8,12 +8,12 @@ type t = (Env.addr * Value.t) list
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let rec remove (e: Env.addr) (z: t): t =
+let rec remove (k: Env.addr) (z: t): t =
   match z with
     | [] -> []
     | (x, n) :: tail ->
-      if x = e then tail
-      else (x, n) :: (remove e tail)
+      if x = k then tail
+      else (x, n) :: (remove k tail)
 
 let add (k: Env.addr) (v: Value.t) (z: t): t =
   if List.exists (fun (l, _) -> l = k) z then (k, v) :: (remove k z)
