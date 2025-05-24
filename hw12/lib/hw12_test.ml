@@ -281,7 +281,23 @@ let%test "HwX_interp_prog_16" =
     | Failure msg -> msg = 
       "The number of arguments not matched: actual 2, expected 1"
 
-let%test "HwX_interp_prog_17" = HwX.interp_prog
+let%test "HwX_interp_prog_17" = 
+  try
+    let _ = HwX.interp_prog 
+      (ParserMain.parse "fun f() { } def x = 0; x = f();")
+    in false
+  with
+    | Failure msg -> msg = "Free address: -1"
+
+let%test "HwX_interp_prog_18" = 
+  try
+    let _ = HwX.interp_prog 
+      (ParserMain.parse "def x = 0; x = f(1);")
+    in false
+  with
+    | Failure msg -> msg = "Unbound function: f"
+
+let%test "HwX_interp_prog_19" = HwX.interp_prog
   (ParserMain.parse 
     "fun f() { return 99; } def x = 0; x = f();") = 
     (
@@ -289,7 +305,7 @@ let%test "HwX_interp_prog_17" = HwX.interp_prog
       [(0, Value.NumV 99); (-1, Value.NumV 99);]
     )
 
-let%test "HwX_interp_prog_18" = HwX.interp_prog
+let%test "HwX_interp_prog_20" = HwX.interp_prog
   (ParserMain.parse 
     "fun f(x) { *x = 99; return 1; } def x = 0; def y = 0; y = f(&x);") = 
     (
