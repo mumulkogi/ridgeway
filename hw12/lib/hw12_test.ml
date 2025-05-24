@@ -148,10 +148,6 @@ let%test "HwX_interp_expr_or_05" =
   with
     | Failure msg -> msg = "Not a bool: false || 1"
 
-(* [`HwX.interp_fundef`] ::::::::::::::::::::::::::::::::::::::::::::::::::: *)
-
-
-
 (* [`HwX.interp_prog`] ::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let%test "HwX_interp_prog_00" = HwX.interp_prog
@@ -267,5 +263,39 @@ let%test "HwX_interp_prog_14" =
     in false
   with
     | Failure msg -> msg = "Not a bool: 0"
+
+let%test "HwX_interp_prog_15" = HwX.interp_prog
+  (ParserMain.parse 
+    "fun f(a) { return a + 1; } def x = 0; x = f(1);") = 
+    (
+      [("x", 0)],
+      [(0, Value.NumV 2); (-1, Value.NumV 2); (1, Value.NumV 1)]
+    )
+
+let%test "HwX_interp_prog_16" = 
+  try
+    let _ = HwX.interp_prog 
+      (ParserMain.parse "fun f(a) { return a + 1; } def x = 0; x = f(1, 2);")
+    in false
+  with
+    | Failure msg -> msg = 
+      "The number of arguments not matched: actual 2, expected 1"
+
+let%test "HwX_interp_prog_17" = HwX.interp_prog
+  (ParserMain.parse 
+    "fun f() { return 99; } def x = 0; x = f();") = 
+    (
+      [("x", 0)],
+      [(0, Value.NumV 99); (-1, Value.NumV 99);]
+    )
+
+let%test "HwX_interp_prog_18" = HwX.interp_prog
+  (ParserMain.parse 
+    "fun f(x) { *x = 99; return 1; } def x = 0; def y = 0; y = f(&x);") = 
+    (
+      [("y", 1); ("x", 0)],
+      [(1, Hw12_test__.Value.NumV 1); (-1, Hw12_test__.Value.NumV 1);
+       (0, Hw12_test__.Value.NumV 99); (2, Hw12_test__.Value.AddrV 0)]
+  )
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

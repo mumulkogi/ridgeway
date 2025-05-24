@@ -155,7 +155,39 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
           )
       )
 
-    | _ -> failwith "Not Implemented!"
+    | Ast.ReturnStmt (e) ->
+      let a: Env.addr = AddrManager.ret_addr in 
+      let v: Value.t = interp_expr e zm in
+      (z, (Mem.add a v m))
+
+    | Ast.CallStmt (x, f, el) ->
+      let (pl, sl) = Fstore.find f u in 
+      let vl: (Value.t list) = List.map
+        (fun e -> interp_expr e zm) el in
+      if List.length pl <> List.length el then
+        failwith (
+          Format.asprintf 
+            "The number of arguments not matched: actual %d, expected %d"
+            (List.length el) (List.length pl)
+        )
+      else (
+        let al: (Env.addr list) = List.map 
+          (fun _ -> AddrManager.new_addr ()) pl in
+        let pal: (string * Env.addr) list = List.combine pl al in
+        let avl: (Env.addr * Value.t) list = List.combine al vl in
+        (
+          let z1: Env.t = List.fold_left 
+          (fun acc (p, a) -> (Env.add p a acc)) z pal in
+          let m1: Mem.t = List.fold_left
+            (fun acc (a, v) -> (Mem.add a v acc)) m avl in
+          (
+            let (_, m2): (Env.t * Mem.t) = interp_stmts sl u (z1, m1) in
+            let a: Env.addr = Env.find x z in
+            let v: Value.t = Mem.find (AddrManager.ret_addr) m2 in
+            (z, (Mem.add a v m2))
+          )
+        )
+      )
 
 and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
   (Env.t * Mem.t) =
@@ -166,7 +198,7 @@ and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
 
 let rec interp_fundef (d: Ast.def) (u: Fstore.t): Fstore.t =
   match d with
-    | Ast.FunDef (f, x, sl) -> Fstore.add f x sl u
+    | Ast.FunDef (f, pl, sl) -> Fstore.add f pl sl u
 
 and interp_fundefs (dl: Ast.def list) (u: Fstore.t): Fstore.t =
   let acc: Fstore.t = u in
