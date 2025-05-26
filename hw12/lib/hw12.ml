@@ -171,9 +171,14 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
             (List.length el) (List.length pl)
         )
       else (
+        (* Allocates new storage for the function arguments *)
         let al: (Env.addr list) = List.map 
           (fun _ -> AddrManager.new_addr ()) pl in
+        
+        (* Each parameter corresponds to an address in `al` *)
         let pal: (string * Env.addr) list = List.combine pl al in
+
+        (* And each address corresponds to a value in `vl` *)
         let avl: (Env.addr * Value.t) list = List.combine al vl in
         (
           let z1: Env.t = List.fold_left 

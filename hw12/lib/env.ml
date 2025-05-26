@@ -13,9 +13,13 @@ let rec remove (k: string) (z: t): t =
       if x = k then tail
       else (x, n) :: (remove k tail)
 
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
 let add (k: string) (v: addr) (z: t): t =
   if List.exists (fun (l, _) -> l = k) z then (k, v) :: (remove k z)
   else (k, v) :: z
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let rec find (k: string) (z: t): addr =
   match z with
