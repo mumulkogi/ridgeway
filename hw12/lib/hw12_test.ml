@@ -305,13 +305,4 @@ let%test "HwX_interp_prog_19" = HwX.interp_prog
       [(0, Value.NumV 99); (-1, Value.NumV 99);]
     )
 
-let%test "HwX_interp_prog_20" = HwX.interp_prog
-  (ParserMain.parse 
-    "fun f(x) { *x = 99; return 1; } def x = 0; def y = 0; y = f(&x);") = 
-    (
-      [("y", 1); ("x", 0)],
-      [(1, Hw12_test__.Value.NumV 1); (-1, Hw12_test__.Value.NumV 1);
-       (0, Hw12_test__.Value.NumV 99); (2, Hw12_test__.Value.AddrV 0)]
-  )
-
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

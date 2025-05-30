@@ -1,5 +1,9 @@
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
+module F = Format
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
 let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
   let (z, m) = zm in
   match e with
@@ -13,7 +17,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
         match v with
           | AddrV a -> Mem.find a m
           | _ -> failwith (
-            Format.asprintf "Not an address: %a"
+            F.asprintf "Not an address: %a"
             Ast.pp_expr e
           )
       )
@@ -39,7 +43,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
                 | _ -> failwith "Unreachable!" [@coverage off]
             )
           | _ -> failwith (
-            Format.asprintf "Not a number: %a"
+            F.asprintf "Not a number: %a"
             Ast.pp_expr e
           )
       )
@@ -66,13 +70,13 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
                 match v2 with
                   | BoolV b2 -> BoolV (b1 == b2)
                   | _ -> failwith (
-                    Format.asprintf "Not a bool: %a"
+                    F.asprintf "Not a bool: %a"
                     Ast.pp_expr e
                   )
               )
             ) else v1
           | _ -> failwith (
-            Format.asprintf "Not a bool: %a"
+            F.asprintf "Not a bool: %a"
             Ast.pp_expr e
           )
       )
@@ -88,13 +92,13 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
                 match v2 with
                   | BoolV _ -> v2
                   | _ -> failwith (
-                    Format.asprintf "Not a bool: %a"
+                    F.asprintf "Not a bool: %a"
                     Ast.pp_expr e
                   )
               )
             ) else v1
           | _ -> failwith (
-            Format.asprintf "Not a bool: %a"
+            F.asprintf "Not a bool: %a"
             Ast.pp_expr e
           )
       )
@@ -115,7 +119,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
             let v2: Value.t = interp_expr e2 zm in
             (z, (Mem.add a v2 m))
           | _ -> failwith (
-            Format.asprintf "Not an address: %a"
+            F.asprintf "Not an address: %a"
             Ast.pp_expr e1
           )
       )
@@ -128,7 +132,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
             let (_, m1) = interp_stmts (if b then sl1 else sl2) u zm in
             (z, m1)
           | _ -> failwith (
-            Format.asprintf "Not a bool: %a"
+            F.asprintf "Not a bool: %a"
             Ast.pp_expr e
           )
       )
@@ -145,7 +149,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
               ) else zm
             )
           | _ -> failwith (
-            Format.asprintf "Not a bool: %a"
+            F.asprintf "Not a bool: %a"
             Ast.pp_expr e
           )
       )
@@ -161,7 +165,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
         (fun e -> interp_expr e zm) el in
       if List.length pl <> List.length el then
         failwith (
-          Format.asprintf 
+          F.asprintf 
             "The number of arguments not matched: actual %d, expected %d"
             (List.length el) (List.length pl)
         )
