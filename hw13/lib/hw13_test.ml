@@ -440,4 +440,40 @@ x = f();        \
     [(0, Value.NumV 99); (-1, Value.NumV 99);]
   )
 
+let%test "HwX_interp_prog_19" = HwX.interp_prog (
+  ParserMain.parse 
+"               \
+fun f(): int {  \
+  return 99;    \
+}               \
+                \
+def x: int = 0; \
+                \
+x = f();        \
+"
+  ) = 
+  (
+    [("x", 0)],
+    [(0, Value.NumV 99); (-1, Value.NumV 99);]
+  )
+
+(*
+- : Hw13_test__.Env.t * Hw13_test__.Mem.t =
+([("x", 0)], [(0, Hw13_test__.Value.NumV 10)])
+*)
+
+let%test "HwX_interp_prog_20" =
+  try
+    let _ = HwX.interp_prog (
+      ParserMain.parse 
+"               \
+def x: int = 0; \
+                \
+x = input();    \
+"
+    ) in false
+  with
+    | End_of_file -> true
+    | _ -> false
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
