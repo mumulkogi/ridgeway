@@ -109,7 +109,10 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
   (Env.t * Mem.t) = 
   let (z, m) = zm in
   match s with
-    | Ast.DefStmt (_, _, _) -> failwith "Not Implemented!"
+    | Ast.DefStmt (_, x, e) ->
+      let v: Value.t = interp_expr e zm in
+      let a: Env.addr = AddrManager.new_addr () in
+      ((Env.add x a z), (Mem.add a v m))
 
     | Ast.StoreStmt (e1, e2) ->
       let v1: Value.t = interp_expr e1 zm in
@@ -192,7 +195,15 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
           )
         )
       )
-    | InputStmt (_) -> failwith "Not Implemented!"
+    | InputStmt (x) ->
+      let a: Env.addr = Env.find x z in
+      (
+        match (read_int_opt ()) with
+          | Some (n) -> 
+            let v: Value.t = (NumV n) in
+            (z, (Mem.add a v m))
+          | None -> failwith "Not Implemented!"
+      )
 
 and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
   (Env.t * Mem.t) =

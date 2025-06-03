@@ -21,7 +21,7 @@ let add (k: string) (v: Ast.typ) (z: t): t =
 
 let rec find (k: string) (z: t): Ast.typ =
   match z with
-    | [] -> failwith "Not Implemented!"
+    | [] -> failwith "Unexpected!"
     | (x, n) :: tail -> if x = k then n else find k tail
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
