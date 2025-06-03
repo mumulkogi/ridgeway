@@ -489,9 +489,86 @@ let%test "HwXt_tc_expr_ref_01" =
       (Ast.Ref "x") ([])
     in false
   with
-    | Failure msg -> msg = "[Ill-typed] &x"
+    | Failure msg -> msg = "[Ill-typed] x"
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test "HwXt_tc_expr_add_00" = HwXt.tc_expr 
+  (Ast.Add (Ast.Num 1, Ast.Num 2)) ([])
+  = Ast.TInt
+
+let%test "HwXt_tc_expr_add_01" = HwXt.tc_expr 
+  (Ast.Add (Ast.Id "x", Ast.Num 1)) ([("x", Ast.TInt)])
+  = Ast.TInt
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test "HwXt_tc_expr_sub_00" = HwXt.tc_expr 
+  (Ast.Sub (Ast.Num 1, Ast.Num 2)) ([])
+  = Ast.TInt
+
+let%test "HwXt_tc_expr_sub_01" = 
+  try
+    let _ = HwXt.tc_expr 
+      (Ast.Sub (Ast.Id "x", Ast.Num 1)) ([("x", Ast.TBool)])
+    in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x - 1"
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test "HwXt_tc_expr_lt_00" = HwXt.tc_expr 
+  (Ast.Lt (Ast.Num 1, Ast.Num 2)) ([])
+  = Ast.TBool
+
+
+let%test "HwXt_tc_expr_lt_01" = 
+  try
+    let _ = HwXt.tc_expr 
+      (Ast.Lt (Ast.Id "x", Ast.Num 1)) ([])
+    in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x"
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test "HwXt_tc_expr_gt_00" = HwXt.tc_expr 
+  (Ast.Gt (Ast.Num 1, Ast.Num 2)) ([])
+  = Ast.TBool
+
+let%test "HwXt_tc_expr_gt_01" = HwXt.tc_expr
+  (Ast.Gt (Ast.Id "x", Ast.Id "y")) ([("x", Ast.TInt); ("y", Ast.TInt)])
+  = Ast.TBool
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test "HwXt_tc_expr_eq_00" = HwXt.tc_expr 
+  (Ast.Eq (Ast.Num 1, Ast.Num 2)) ([])
+  = Ast.TBool
+
+let%test "HwXt_tc_expr_eq_01" = HwXt.tc_expr 
+  (Ast.Eq (Ast.Bool true, Ast.Bool false)) ([])
+  = Ast.TBool
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test "HwXt_tc_expr_and_00" = HwXt.tc_expr 
+  (Ast.And (Ast.Bool true, Ast.Bool false)) ([])
+  = Ast.TBool
+
+let%test "HwXt_tc_expr_and_01" = 
+  try
+    let _ = HwXt.tc_expr 
+      (Ast.And (Ast.Id "x", Ast.Id "y")) ([("x", Ast.TInt); ("y", Ast.TBool)])
+    in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x && y"
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
+let%test "HwXt_tc_expr_or_00" = HwXt.tc_expr 
+  (Ast.Or (Ast.Bool true, Ast.Bool false)) ([])
+  = Ast.TBool
 
 (* [`HwXt.tc_prog`] :::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 

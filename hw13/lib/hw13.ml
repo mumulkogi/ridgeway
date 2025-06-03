@@ -166,7 +166,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
       let (pl, sl) = Fstore.find f u in 
       let vl: (Value.t list) = List.map
         (fun e -> interp_expr e zm) el in
-      if List.length pl <> List.length el then
+      if (List.length pl <> List.length el) then
         failwith (
           F.asprintf 
             "The number of arguments not matched: actual %d, expected %d"
@@ -195,6 +195,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
           )
         )
       )
+
     | InputStmt (x) ->
       let a: Env.addr = Env.find x z in 
       (
