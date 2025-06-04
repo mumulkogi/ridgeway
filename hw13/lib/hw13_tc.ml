@@ -18,8 +18,8 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
 
     | Ast.Ref x -> Ast.TPtr (tc_expr (Ast.Id x) h)
 
-    | Ast.Deref e ->
-      let y: Ast.typ = tc_expr e h in
+    | Ast.Deref x ->
+      let y: Ast.typ = tc_expr x h in
       (
         match y with
           | Ast.TPtr y1 -> y1
@@ -142,11 +142,12 @@ let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)):
       )
       
     | InputStmt (x) ->
-      let _: Ast.typ = 
+      let yx: Ast.typ = 
         try 
           (tc_expr (Ast.Id x) h)
         with Failure _ -> failwith_stmt s [@coverage off] in
-      gh
+      if yx = Ast.TInt then gh 
+      else failwith_stmt s
 
 and tc_stmts (sl: Ast.stmt list) (gh: (GlobalTEnv.t * LocalTEnv.t)):
   (GlobalTEnv.t * LocalTEnv.t) =

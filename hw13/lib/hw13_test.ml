@@ -493,6 +493,20 @@ let%test "HwXt_tc_expr_ref_01" =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
+let%test "HwXt_tc_expr_deref_00" = HwXt.tc_expr 
+  (Ast.Deref (Ast.Id "x")) ([("x", Ast.TPtr (Ast.TInt))])
+  = Ast.TInt
+
+let%test "HwXt_tc_expr_deref_01" = 
+  try
+    let _ = HwXt.tc_expr 
+      (Ast.Deref (Ast.Id "x")) ([("x", Ast.TBool)])
+    in false
+  with
+    | Failure msg -> msg = "[Ill-typed] *x"
+
+(* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
+
 let%test "HwXt_tc_expr_add_00" = HwXt.tc_expr 
   (Ast.Add (Ast.Num 1, Ast.Num 2)) ([])
   = Ast.TInt
@@ -631,5 +645,95 @@ x = x + 1;      \
     [],
     [("x", Ast.TInt)]
   )
+
+let%test "HwXt_tc_prog_05" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"               \
+def x: int = 1; \
+                \
+x = false;      \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] *&x = false;"
+
+let%test "HwXt_tc_prog_06" = HwXt.tc_prog (
+  ParserMain.parse 
+"               \
+def x: int = 1; \
+def y: int = 2; \
+                \
+if (x < y) {    \
+  x = y;        \
+}               \
+"
+  ) =
+  (
+    [],
+    [("y", Ast.TInt); ("x", Ast.TInt)]
+  )
+
+let%test "HwXt_tc_prog_07" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"               \
+def x: int = 1; \
+def y: int = 2; \
+                \
+if (1) {        \
+  x = y;        \
+} else {        \
+  x = 1;        \
+}               \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] if 1 { *&x = y; } else { *&x = 1; }"
+
+let%test "HwXt_tc_prog_08" = HwXt.tc_prog (
+  ParserMain.parse 
+"               \
+def x: int = 5; \
+def y: int = 0; \
+                \
+while (x < 0) { \
+  y = y + x;    \
+  x = x - 1;    \
+}               \
+"
+  ) =
+  (
+    [],
+    [("y", Ast.TInt); ("x", Ast.TInt)]
+  )
+
+let%test "HwXt_tc_prog_06" = HwXt.tc_prog (
+  ParserMain.parse 
+"               \
+def x: int = 0; \
+                \
+x = input();    \
+"
+  ) =
+  (
+    [],
+    [("x", Ast.TInt);]
+  )
+
+let%test "HwXt_tc_prog_10" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                   \
+def x: bool = true; \
+                    \
+x = input();        \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x = input();"
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

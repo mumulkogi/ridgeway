@@ -11,14 +11,14 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
 
     | Ast.Ref x -> AddrV (Env.find x z)
 
-    | Ast.Deref e ->
-      let v: Value.t = interp_expr e zm in
+    | Ast.Deref x ->
+      let v: Value.t = interp_expr x zm in
       (
         match v with
           | AddrV a -> Mem.find a m
           | _ -> failwith (
             F.asprintf "Not an address: %a"
-            Ast.pp_expr e
+            Ast.pp_expr x
           )
       )
 
@@ -215,8 +215,7 @@ and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
 
 let rec interp_fundef (d: Ast.def) (u: Fstore.t): Fstore.t =
   let (Ast.FunDef (_, f, pl, sl)) = d in 
-  let pl_without_types: string list = List.map (fun (_, x) -> x) pl in 
-  (Fstore.add f pl_without_types sl u)
+  let pl_without_types: string list = List.map (fun (_, x) -> x) pl in (Fstore.add f pl_without_types sl u)
 
 and interp_fundefs (dl: Ast.def list) (u: Fstore.t): Fstore.t =
   let acc: Fstore.t = u in
