@@ -79,7 +79,7 @@ let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)):
   match s with
     | Ast.DefStmt (y, x, e) ->
       let y1: Ast.typ = 
-        try (tc_expr e h) with Failure _ -> failwith_stmt s in
+        try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
         if (y = y1) then (g, (LocalTEnv.add x y h))
         else failwith_stmt s
@@ -87,28 +87,28 @@ let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)):
 
     | Ast.StoreStmt (e1, e2) ->
       let y1: Ast.typ = 
-        try (tc_expr e1 h) with Failure _ -> failwith_stmt s in
+        try (tc_expr e1 h) with Failure _ -> failwith_stmt s [@coverage off] in 
       let y2: Ast.typ = 
-        try (tc_expr e2 h) with Failure _ -> failwith_stmt s in
+        try (tc_expr e2 h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
-        if (y2 = Ast.TPtr y1) then gh
+        if (y1 = Ast.TPtr y2) then gh
         else failwith_stmt s
       )
 
     | Ast.IfStmt (e, sl1, sl2) ->
       let y: Ast.typ = 
-        try (tc_expr e h) with Failure _ -> failwith_stmt s in
+        try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
         if (y = Ast.TBool) then (
-          let _ = tc_stmts sl1 gh in
-          let _ = tc_stmts sl2 gh in
+          let (_, _) = tc_stmts sl1 gh in
+          let (_, _) = tc_stmts sl2 gh in
           gh
         ) else failwith_stmt s
       )
 
     | Ast.LoopStmt (e, sl) -> 
       let y: Ast.typ = 
-        try (tc_expr e h) with Failure _ -> failwith_stmt s in
+        try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
         if (y = Ast.TBool) then (
           let (_, _) = tc_stmts sl gh in gh
@@ -117,14 +117,18 @@ let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)):
 
     | Ast.ReturnStmt (e) ->
       let _: Ast.typ = 
-        try (tc_expr e h) with Failure _ -> failwith_stmt s in
+        try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       gh
 
     | Ast.CallStmt (x, f, el) ->
       let yx: Ast.typ = 
-        try (tc_expr (Ast.Id x) h) with Failure _ -> failwith_stmt s in
+        try 
+          (tc_expr (Ast.Id x) h) 
+        with Failure _ -> failwith_stmt s [@coverage off] in
       let yf: Ast.typ = 
-        try (GlobalTEnv.find f g) with Failure _ -> failwith_stmt s in
+        try 
+          (GlobalTEnv.find f g) 
+        with Failure _ -> failwith_stmt s [@coverage off] in
       (
         if List.is_empty el then (
           match yf with
@@ -139,7 +143,9 @@ let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)):
       
     | InputStmt (x) ->
       let _: Ast.typ = 
-        try (tc_expr (Ast.Id x) h) with Failure _ -> failwith_stmt s in
+        try 
+          (tc_expr (Ast.Id x) h)
+        with Failure _ -> failwith_stmt s [@coverage off] in
       gh
 
 and tc_stmts (sl: Ast.stmt list) (gh: (GlobalTEnv.t * LocalTEnv.t)):
@@ -149,16 +155,30 @@ and tc_stmts (sl: Ast.stmt list) (gh: (GlobalTEnv.t * LocalTEnv.t)):
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let tc_fundef (d: Ast.def) (gh: (GlobalTEnv.t * LocalTEnv.t)): 
+let rec tc_fundef (d: Ast.def) (gh: (GlobalTEnv.t * LocalTEnv.t)): 
   (GlobalTEnv.t * LocalTEnv.t) =
-  let (_, _) = gh in
-  match d with
-    | _ -> failwith "Not Implemented!"
+  let (g, h) = gh in
+  let (Ast.FunDef (yr, f, pl, _)) = d in
+  (
+    if List.is_empty pl then (
+      let yf: Ast.typ = Ast.TArrow (Ast.TUnit, yr) in
+      ((GlobalTEnv.add f yf g), h)
+    ) else (
+      failwith "Not Implemented!"
+    )
+  )
+
+and tc_fundefs (dl: Ast.def list) (gh: (GlobalTEnv.t * LocalTEnv.t)):
+  (GlobalTEnv.t * LocalTEnv.t) =
+  let acc: (GlobalTEnv.t * LocalTEnv.t) = gh in
+  List.fold_left (fun acc d -> tc_fundef d acc) acc dl
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let tc_prog (p: Ast.prog): (GlobalTEnv.t * LocalTEnv.t) =
-  match p with
-    | _ -> failwith "Not Implemented!" 
+  let (Ast.Program (dl, sl)) = p in
+  let (g, _) = tc_fundefs dl ([], []) in
+  let (_, h) = tc_stmts sl (g, []) in
+  (g, h)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

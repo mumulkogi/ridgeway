@@ -214,11 +214,9 @@ and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let rec interp_fundef (d: Ast.def) (u: Fstore.t): Fstore.t =
-  match d with
-    | Ast.FunDef (_, f, pl, sl) -> 
-      let pl_without_types: string list = 
-        List.map (fun (_, x) -> x) pl
-      in (Fstore.add f pl_without_types sl u)
+  let (Ast.FunDef (_, f, pl, sl)) = d in 
+  let pl_without_types: string list = List.map (fun (_, x) -> x) pl in 
+  (Fstore.add f pl_without_types sl u)
 
 and interp_fundefs (dl: Ast.def list) (u: Fstore.t): Fstore.t =
   let acc: Fstore.t = u in

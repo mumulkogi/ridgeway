@@ -572,4 +572,64 @@ let%test "HwXt_tc_expr_or_00" = HwXt.tc_expr
 
 (* [`HwXt.tc_prog`] :::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
+let%test "HwXt_tc_prog_00" = HwXt.tc_prog (
+  ParserMain.parse 
+"               \
+def x: int = 3; \
+"
+  ) =
+  (
+    [],
+    [("x", Ast.TInt)]
+  )
+
+let%test "HwXt_tc_prog_01" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                      \
+def x: int = false; \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] int x = false;"
+
+let%test "HwXt_tc_prog_02" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                      \
+def x: int = true + 1; \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] int x = true + 1;"
+
+let%test "HwXt_tc_prog_03" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                     \
+def x: int = 3;       \
+def y: bool = true;   \
+                      \
+x = x && y;           \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] *&x = x && y;"
+
+let%test "HwXt_tc_prog_04" = HwXt.tc_prog (
+  ParserMain.parse 
+"               \
+def x: int = 1; \
+                \
+x = x + 1;      \
+"
+  ) =
+  (
+    [],
+    [("x", Ast.TInt)]
+  )
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
