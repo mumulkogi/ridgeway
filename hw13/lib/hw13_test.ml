@@ -752,4 +752,43 @@ x = input();        \
   with
     | Failure msg -> msg = "[Ill-typed] x = input();"
 
+let%test "HwXt_tc_prog_12" = HwXt.tc_prog (
+  ParserMain.parse 
+"              \
+fun f(): int { \
+  return 1;    \
+}              \
+"
+  ) =
+  (
+    [("f", Ast.TArrow (Ast.TUnit, Ast.TInt))],
+    []
+  )
+
+let%test "HwXt_tc_prog_13" = HwXt.tc_prog (
+  ParserMain.parse 
+"                    \
+fun f(a: int): int { \
+  return a + 1;      \
+}                    \
+"
+  ) =
+  (
+    [("f", Ast.TArrow (Ast.TInt, Ast.TInt))],
+    []
+  )
+
+let%test "HwXt_tc_prog_14" = HwXt.tc_prog (
+  ParserMain.parse 
+"                            \
+fun f(a: int, b: int): int { \
+  return a + b;              \
+}                            \
+"
+  ) =
+  (
+    [("f", Ast.TArrow (Ast.TInt, Ast.TArrow (Ast.TInt, Ast.TInt)))],
+    []
+  )
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

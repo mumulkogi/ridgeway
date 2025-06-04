@@ -161,12 +161,15 @@ let rec tc_fundef (d: Ast.def) (gh: (GlobalTEnv.t * LocalTEnv.t)):
   let (g, h) = gh in
   let (Ast.FunDef (yr, f, pl, _)) = d in
   (
-    if List.is_empty pl then (
-      let yf: Ast.typ = Ast.TArrow (Ast.TUnit, yr) in
-      ((GlobalTEnv.add f yf g), h)
-    ) else (
-      failwith "Not Implemented!"
-    )
+    let yf: Ast.typ = (
+      match pl with
+        | [] -> Ast.TArrow (Ast.TUnit, yr)
+        | [(y, _)] -> Ast.TArrow (y, yr)
+        | (y, _) :: tail -> (
+          List.fold_right 
+            (fun (y, _) acc -> Ast.TArrow (y, acc)) (tail @ [(yr, "")]) y
+        )
+    ) in ((GlobalTEnv.add f yf g), h)
   )
 
 and tc_fundefs (dl: Ast.def list) (gh: (GlobalTEnv.t * LocalTEnv.t)):
