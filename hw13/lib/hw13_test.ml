@@ -710,7 +710,23 @@ while (x < 0) { \
     [("y", Ast.TInt); ("x", Ast.TInt)]
   )
 
-let%test "HwXt_tc_prog_06" = HwXt.tc_prog (
+let%test "HwXt_tc_prog_09" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"               \
+def x: int = 5; \
+def y: int = 0; \
+                \
+while (x) {     \
+  x = x - 1;    \
+}               \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] while(x) { *&x = x - 1; }"
+
+let%test "HwXt_tc_prog_10" = HwXt.tc_prog (
   ParserMain.parse 
 "               \
 def x: int = 0; \
@@ -723,7 +739,7 @@ x = input();    \
     [("x", Ast.TInt);]
   )
 
-let%test "HwXt_tc_prog_10" = 
+let%test "HwXt_tc_prog_11" = 
   try
     let _ = HwXt.tc_prog (
       ParserMain.parse 
