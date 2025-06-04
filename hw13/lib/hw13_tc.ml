@@ -135,9 +135,20 @@ let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)):
             | Ast.TArrow (Ast.TUnit, yr) when yx = yr -> gh
             | _ -> failwith_stmt s
         ) else (
-          let _: (Ast.typ list) = List.map
-            (fun e -> tc_expr e h) el in
-          failwith "Not Implemented!"
+          let rec arrow_to_typ_list (yf: Ast.typ): (Ast.typ list) = (
+            match yf with
+              | Ast.TArrow (y1, y2) -> y1 :: (arrow_to_typ_list y2)
+              | y -> [y]
+          ) in
+          let yl1: (Ast.typ list) = arrow_to_typ_list yf in
+          let yl2: (Ast.typ list) = (List.map
+            (fun e -> tc_expr e h) el) in
+          let yr: Ast.typ = List.hd (List.rev yl1) in
+          (
+            if ((List.compare_lengths yl1 (yl2 @ [yr])) = 0)
+              && (List.equal (=) yl1 (yl2 @ [yr])) && (yx = yr) then gh
+            else failwith_stmt s
+          )
         )
       )
       

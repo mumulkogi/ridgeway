@@ -791,4 +791,89 @@ fun f(a: int, b: int): int { \
     []
   )
 
+let%test "HwXt_tc_prog_15" = HwXt.tc_prog (
+  ParserMain.parse 
+"               \
+fun f(): int {  \
+  return 1;     \
+}               \
+                \
+def x: int = 0; \
+                \
+x = f();        \
+"
+  ) =
+  (
+    [("f", Ast.TArrow (Ast.TUnit, Ast.TInt))],
+    [("x", Ast.TInt)]
+  )
+
+let%test "HwXt_tc_prog_16" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                   \
+fun f(): int {      \
+  return 1;         \
+}                   \
+                    \
+def x: bool = true; \
+                    \
+x = f();            \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x = f();"
+
+let%test "HwXt_tc_prog_17" = HwXt.tc_prog (
+  ParserMain.parse 
+"                    \
+fun f(a: int): int { \
+  return a + 1;      \
+}                    \
+                     \
+def x: int = 0;      \
+                     \
+x = f(1);            \
+"
+  ) =
+  (
+    [("f", Ast.TArrow (Ast.TInt, Ast.TInt))],
+    [("x", Ast.TInt)]
+  )
+
+let%test "HwXt_tc_prog_18" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                    \
+fun f(a: int): int { \
+  return a + 1;      \
+}                    \
+                     \
+def x: int = 0;      \
+                     \
+x = f(1, 2);         \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x = f(1, 2);"
+
+let%test "HwXt_tc_prog_18" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                            \
+fun f(a: int, b: int): int { \
+  return a + b;              \
+}                            \
+                             \
+def x: int = 0;              \
+                             \
+x = f(1);                    \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x = f(1);"
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
