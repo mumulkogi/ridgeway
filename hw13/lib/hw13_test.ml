@@ -859,7 +859,7 @@ x = f(1, 2);         \
   with
     | Failure msg -> msg = "[Ill-typed] x = f(1, 2);"
 
-let%test "HwXt_tc_prog_18" = 
+let%test "HwXt_tc_prog_19" = 
   try
     let _ = HwXt.tc_prog (
       ParserMain.parse 
@@ -875,5 +875,39 @@ x = f(1);                    \
     ) in false
   with
     | Failure msg -> msg = "[Ill-typed] x = f(1);"
+
+let%test "HwXt_tc_prog_20" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                            \
+fun f(a: int, b: int): int { \
+  return true;               \
+}                            \
+                             \
+def x: int = 0;              \
+                             \
+x = f(1);                    \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] return true;"
+
+let%test "HwXt_tc_prog_21" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                             \
+fun f(a: int): bool {         \
+  return 1;                   \
+}                             \
+                              \
+def x: bool = false;          \
+                              \
+x = f(1);                     \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] return 1;"
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

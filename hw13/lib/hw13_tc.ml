@@ -117,9 +117,10 @@ let rec tc_stmt (s: Ast.stmt)
       )
 
     | Ast.ReturnStmt (e) ->
-      let _: Ast.typ = 
+      let ye: Ast.typ = 
         try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
-      h
+      if (ye = yr) then h
+      else failwith_stmt s
 
     | Ast.CallStmt (x, f, el) ->
       let yx: Ast.typ = 
