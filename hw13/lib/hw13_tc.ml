@@ -76,7 +76,7 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
 let rec tc_stmt (s: Ast.stmt) 
                 (gh: (GlobalTEnv.t * LocalTEnv.t)) 
                 (yr: Ast.typ): LocalTEnv.t =
-  let (_, h) = gh in
+  let (g, h) = gh in
   match s with
     | Ast.DefStmt (y, x, e) ->
       let ye: Ast.typ = 
@@ -121,8 +121,37 @@ let rec tc_stmt (s: Ast.stmt)
         try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       h
 
-    | Ast.CallStmt (_, _, _) ->
-      failwith "Not Implemented!"
+    | Ast.CallStmt (x, f, el) ->
+      let yx: Ast.typ = 
+        try 
+          (tc_expr (Ast.Id x) h) 
+        with Failure _ -> failwith_stmt s [@coverage off] in
+      let yf: Ast.typ = 
+        try 
+          (GlobalTEnv.find f g) 
+        with Failure _ -> failwith_stmt s [@coverage off] in
+      (
+        if List.is_empty el then (
+          match yf with
+            | Ast.TArrow (Ast.TUnit, y) when yx = y -> h
+            | _ -> failwith_stmt s
+        ) else (
+          let rec arrow_to_typ_list (yf: Ast.typ): (Ast.typ list) = (
+            match yf with
+              | Ast.TArrow (y1, y2) -> y1 :: (arrow_to_typ_list y2)
+              | y -> [y]
+          ) in
+          let yl1: (Ast.typ list) = arrow_to_typ_list yf in
+          let yl2: (Ast.typ list) = (List.map
+            (fun e -> tc_expr e h) el) in
+          let y: Ast.typ = List.hd (List.rev yl1) in
+          (
+            if ((List.compare_lengths yl1 (yl2 @ [y])) = 0)
+              && (List.equal (=) yl1 (yl2 @ [y])) && (yx = y) then h
+            else failwith_stmt s
+          )
+        )
+      )
       
     | InputStmt (x) ->
       let yx: Ast.typ = 
