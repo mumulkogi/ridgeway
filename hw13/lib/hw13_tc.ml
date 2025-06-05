@@ -73,105 +73,75 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)): 
-  (GlobalTEnv.t * LocalTEnv.t) =
-  let (g, h) = gh in
+let rec tc_stmt (s: Ast.stmt) 
+                (gh: (GlobalTEnv.t * LocalTEnv.t)) 
+                (yr: Ast.typ): LocalTEnv.t =
+  let (_, h) = gh in
   match s with
     | Ast.DefStmt (y, x, e) ->
-      let y1: Ast.typ = 
+      let ye: Ast.typ = 
         try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
-        if (y = y1) then (g, (LocalTEnv.add x y h))
+        if (ye = y) then (LocalTEnv.add x y h)
         else failwith_stmt s
       )
 
     | Ast.StoreStmt (e1, e2) ->
-      let y1: Ast.typ = 
+      let ye1: Ast.typ = 
         try (tc_expr e1 h) with Failure _ -> failwith_stmt s [@coverage off] in 
-      let y2: Ast.typ = 
+      let ye2: Ast.typ = 
         try (tc_expr e2 h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
-        if (y1 = Ast.TPtr y2) then gh
+        if (ye1 = Ast.TPtr ye2) then h
         else failwith_stmt s
       )
 
     | Ast.IfStmt (e, sl1, sl2) ->
-      let y: Ast.typ = 
+      let ye: Ast.typ = 
         try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
-        if (y = Ast.TBool) then (
-          let (_, _) = tc_stmts sl1 gh in
-          let (_, _) = tc_stmts sl2 gh in
-          gh
+        if (ye = Ast.TBool) then (
+          let _: LocalTEnv.t = tc_stmts sl1 gh yr in
+          let _: LocalTEnv.t = tc_stmts sl2 gh yr in
+          h
         ) else failwith_stmt s
       )
 
     | Ast.LoopStmt (e, sl) -> 
-      let y: Ast.typ = 
+      let ye: Ast.typ = 
         try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
       (
-        if (y = Ast.TBool) then (
-          let (_, _) = tc_stmts sl gh in gh
+        if (ye = Ast.TBool) then (
+          let _: LocalTEnv.t = tc_stmts sl gh yr in h
         ) else failwith_stmt s
       )
 
     | Ast.ReturnStmt (e) ->
       let _: Ast.typ = 
-        try 
-          (tc_expr e h) 
-        with Failure _ -> failwith_stmt s [@coverage off] in
-      gh
+        try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
+      h
 
-    | Ast.CallStmt (x, f, el) ->
-      let yx: Ast.typ = 
-        try 
-          (tc_expr (Ast.Id x) h) 
-        with Failure _ -> failwith_stmt s [@coverage off] in
-      let yf: Ast.typ = 
-        try 
-          (GlobalTEnv.find f g) 
-        with Failure _ -> failwith_stmt s [@coverage off] in
-      (
-        if List.is_empty el then (
-          match yf with
-            | Ast.TArrow (Ast.TUnit, yr) when yx = yr -> gh
-            | _ -> failwith_stmt s
-        ) else (
-          let rec arrow_to_typ_list (yf: Ast.typ): (Ast.typ list) = (
-            match yf with
-              | Ast.TArrow (y1, y2) -> y1 :: (arrow_to_typ_list y2)
-              | y -> [y]
-          ) in
-          let yl1: (Ast.typ list) = arrow_to_typ_list yf in
-          let yl2: (Ast.typ list) = (List.map
-            (fun e -> tc_expr e h) el) in
-          let yr: Ast.typ = List.hd (List.rev yl1) in
-          (
-            if ((List.compare_lengths yl1 (yl2 @ [yr])) = 0)
-              && (List.equal (=) yl1 (yl2 @ [yr])) && (yx = yr) then gh
-            else failwith_stmt s
-          )
-        )
-      )
+    | Ast.CallStmt (_, _, _) ->
+      failwith "Not Implemented!"
       
     | InputStmt (x) ->
       let yx: Ast.typ = 
         try 
           (tc_expr (Ast.Id x) h)
         with Failure _ -> failwith_stmt s [@coverage off] in
-      if yx = Ast.TInt then gh 
+      if yx = Ast.TInt then h
       else failwith_stmt s
 
-and tc_stmts (sl: Ast.stmt list) (gh: (GlobalTEnv.t * LocalTEnv.t)):
-  (GlobalTEnv.t * LocalTEnv.t) =
-  let acc: (GlobalTEnv.t * LocalTEnv.t) = gh in
-  List.fold_left (fun acc s -> tc_stmt s acc) acc sl
+and tc_stmts (sl: Ast.stmt list) 
+             (gh: (GlobalTEnv.t * LocalTEnv.t)) 
+             (yr: Ast.typ): LocalTEnv.t =
+  let (g, h) = gh in
+  let acc: LocalTEnv.t = h in
+  List.fold_left (fun acc s -> tc_stmt s (g, acc) yr) acc sl
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-let rec tc_fundef (d: Ast.def) (gh: (GlobalTEnv.t * LocalTEnv.t)): 
-  (GlobalTEnv.t * LocalTEnv.t) =
-  let (g, h) = gh in
+let rec tc_fundef (d: Ast.def) (g: GlobalTEnv.t): (GlobalTEnv.t) =
   let (Ast.FunDef (yr, f, pl, _)) = d in
   (
     let yf: Ast.typ = (
@@ -182,20 +152,29 @@ let rec tc_fundef (d: Ast.def) (gh: (GlobalTEnv.t * LocalTEnv.t)):
           List.fold_right 
             (fun (y, _) acc -> Ast.TArrow (y, acc)) (tail @ [(yr, "")]) y
         )
-    ) in ((GlobalTEnv.add f yf g), h)
+    ) in 
+    (GlobalTEnv.add f yf g)
   )
 
-and tc_fundefs (dl: Ast.def list) (gh: (GlobalTEnv.t * LocalTEnv.t)):
-  (GlobalTEnv.t * LocalTEnv.t) =
-  let acc: (GlobalTEnv.t * LocalTEnv.t) = gh in
+and tc_fundefs (dl: Ast.def list) (g: GlobalTEnv.t): (GlobalTEnv.t) =
+  let acc: GlobalTEnv.t = g in
   List.fold_left (fun acc d -> tc_fundef d acc) acc dl
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let tc_prog (p: Ast.prog): (GlobalTEnv.t * LocalTEnv.t) =
   let (Ast.Program (dl, sl)) = p in
-  let (g, _) = tc_fundefs dl ([], []) in
-  let (_, h) = tc_stmts sl (g, []) in
+  let g: GlobalTEnv.t = tc_fundefs dl [] in
+  let _: unit = List.iter 
+    (
+      fun (Ast.FunDef (yr, _, pl, sl)) -> (
+        let h: LocalTEnv.t = List.fold_left 
+          (fun acc (y, x) -> LocalTEnv.add x y acc) [] pl in
+        let _: LocalTEnv.t = tc_stmts sl (g, h) yr in ()
+      )
+    ) 
+    dl in
+  let h = tc_stmts sl (g, []) Ast.TUnit in
   (g, h)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
