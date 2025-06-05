@@ -117,7 +117,9 @@ let rec tc_stmt (s: Ast.stmt) (gh: (GlobalTEnv.t * LocalTEnv.t)):
 
     | Ast.ReturnStmt (e) ->
       let _: Ast.typ = 
-        try (tc_expr e h) with Failure _ -> failwith_stmt s [@coverage off] in
+        try 
+          (tc_expr e h) 
+        with Failure _ -> failwith_stmt s [@coverage off] in
       gh
 
     | Ast.CallStmt (x, f, el) ->
