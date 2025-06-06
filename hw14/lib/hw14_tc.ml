@@ -16,7 +16,11 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
   match e with
     | Ast.Num _ -> Ast.TInt
 
-    | Ast.Array (_, _, _) -> failwith "Not Implemented!"
+    | Ast.Array (y, e1, e2) ->
+      let y1: Ast.typ = tc_expr e1 h in
+      let y2: Ast.typ = tc_expr e2 h in
+      if (y1 = Ast.TInt && y2 = y) then Ast.TArray y
+      else failwith_expr e
 
     | Ast.Ref x -> Ast.TPtr (tc_expr (Ast.Id x) h)
 
@@ -73,13 +77,35 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
           | _ -> failwith_expr e
       )
 
-    | Ast.Index (_, _) -> failwith "Not Implemented!"
+    | Ast.Index (e1, e2) ->
+      let y1: Ast.typ = tc_expr e1 h in
+      let y2: Ast.typ = tc_expr e2 h in
+      (
+        match (y1, y2) with
+          | (Ast.TArray y, Ast.TInt) -> y
+          | _ -> failwith_expr e
+      )
 
-    | Ast.Tuple (_, _) -> failwith "Not Implemented!"
+    | Ast.Tuple (e1, e2) -> 
+      let y1: Ast.typ = tc_expr e1 h in
+      let y2: Ast.typ = tc_expr e2 h in
+      Ast.TTuple (y1, y2)
 
-    | Ast.First (_) -> failwith "Not Implemented!"
+    | Ast.First (e1) 
+    | Ast.Second (e1) ->
+      let y: Ast.typ = tc_expr e1 h in
+      (
+        match y with
+          | Ast.TTuple (y1, y2) -> 
+            (
+              match e with
+                | Ast.First _ -> y1
+                | Ast.Second _ -> y2
+                | _ -> failwith "Unreachable!" [@coverage off]
+            )
 
-    | Ast.Second (_) -> failwith "Not Implemented!"
+          | _ -> failwith_expr e1
+      )
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
@@ -95,7 +121,19 @@ let rec tc_stmt (s: Ast.stmt)
         else failwith_stmt s
       )
 
-    | Ast.DefArrInitStmt (_, _, _) -> failwith "Not Implemented!"
+    | Ast.DefArrInitStmt (y, x, el) -> 
+      (
+        match y with
+          | Ast.TArray y1 -> 
+            let _: Ast.typ = List.fold_left 
+              (fun acc e -> 
+                if ((tc_expr e h) = acc) then acc 
+                else failwith_stmt s
+              ) y1 el in
+            (LocalTEnv.add x y h)
+
+          | _ -> failwith_stmt s
+      )
 
     | Ast.StoreStmt (e1, e2) ->
       let ye1: Ast.typ = (tc_expr e1 h) in
@@ -159,7 +197,17 @@ let rec tc_stmt (s: Ast.stmt)
       if yx = Ast.TInt then h
       else failwith_stmt s
 
-    | Ast.UpdateStmt (_, _, _) -> failwith "Not Implemented!"
+    | Ast.UpdateStmt (x, e1, e2) ->
+      let yx: Ast.typ = (tc_expr (Ast.Id x) h) in
+      let ye1: Ast.typ = (tc_expr e1 h) in
+      let ye2: Ast.typ = (tc_expr e2 h) in 
+      (
+        match yx with
+          | Ast.TArray y 
+            when ye1 = Ast.TInt && ye2 = y -> h [@coverage off]
+          
+          | _ -> failwith_stmt s
+      )
 
 and tc_stmts (sl: Ast.stmt list) 
              (gh: (GlobalTEnv.t * LocalTEnv.t)) 

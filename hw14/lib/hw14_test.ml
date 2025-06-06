@@ -521,7 +521,20 @@ if (x == y) {                 \
     ]
   )
 
-let%test "HwX_interp_prog_24" = HwX.interp_prog (
+let%test "HwX_interp_prog_24" = 
+  try
+    let _ = HwX.interp_prog (
+      ParserMain.parse 
+"                             \
+def x: int array = int[1](0); \
+                              \
+x[0] = x[true];               \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "Invalid array indexing: x[true]"
+
+let%test "HwX_interp_prog_25" = HwX.interp_prog (
   ParserMain.parse 
 "                               \
 def x: int array = { 1, 2, 3 }; \
@@ -531,6 +544,35 @@ def x: int array = { 1, 2, 3 }; \
     [("x", 0)],
     [(0, Value.ArrayV (3, [Value.NumV 1; Value.NumV 2; Value.NumV 3]))]
   )
+
+let%test "HwX_interp_prog_26" = 
+  try
+    let _ = HwX.interp_prog (
+      ParserMain.parse 
+"                             \
+def x: int array = int[1](0); \
+                              \
+x[true] = 1;                  \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "Invalid array update: x[true] = 1;"
+
+let%test "HwX_interp_prog_27" = 
+  try
+    let _ = HwX.interp_prog (
+      ParserMain.parse 
+"                            \
+def v: (int * int) = (1, 2); \
+def w: (int * int) = (1, 3); \
+                             \
+def x: int = v._1 + v._2;    \
+def y: bool = (v == w);      \
+def z: int = true._1;        \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "Not a tuple: true"
 
 (* [`HwXt.tc_expr`] :::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
@@ -964,5 +1006,107 @@ x = f(1);                     \
     ) in false
   with
     | Failure msg -> msg = "[Ill-typed] return 1;"
+
+let%test "HwXt_tc_prog_21" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                             \
+def x: int array = int[3](0); \
+                              \
+x[1] = true;                  \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x[1] = true;"
+
+let%test "HwXt_tc_prog_22" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                             \
+def x: int array = int[3](0); \
+                              \
+x[true] = true;               \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x[true] = true;"
+
+let%test "HwXt_tc_prog_23" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                                \
+def x: int array = int[true](0); \
+                                 \
+x[0] = 1;                        \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] int[true](0)"
+
+let%test "HwXt_tc_prog_24" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                               \
+def x: int array = { 1, 2, 3 }; \
+                                \
+def y: int = x[0];              \
+def z: int = y[0];              \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] y[0]"
+
+let%test "HwXt_tc_prog_25" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                                  \
+def x: int array = { 1, true, 3 }; \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] def x : int array = {1, true, 3};"
+
+let%test "HwXt_tc_prog_26" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"                            \
+def x: int = { 1, true, 3 }; \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] def x : int = {1, true, 3};"
+
+let%test "HwXt_tc_prog_27" = HwXt.tc_prog (
+  ParserMain.parse 
+"                            \
+def x: (int * int) = (1, 2); \
+def y: int = x._1;           \
+def z: int = x._2;           \
+"
+  ) =
+  (
+    [],
+    [("z", Ast.TInt); ("y", Ast.TInt); ("x", Ast.TTuple (Ast.TInt, Ast.TInt))]
+  )
+
+let%test "HwXt_tc_prog_28" = 
+  try
+    let _ = HwXt.tc_prog (
+      ParserMain.parse 
+"               \
+def x: int = 0; \
+                \
+*x = x._1;      \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "[Ill-typed] x"
+
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

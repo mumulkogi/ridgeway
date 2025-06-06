@@ -80,6 +80,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
           | (BoolV b1, BoolV b2) -> BoolV (b1 == b2)
           | (AddrV a1, AddrV a2) -> BoolV (a1 == a2)
           | (ArrayV vl1, ArrayV vl2) -> BoolV (vl1 = vl2)
+          | (TupleV r1, TupleV r2) -> BoolV (r1 = r2)
           | _ -> BoolV false
       )
 
@@ -134,7 +135,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
       let v2: Value.t = interp_expr e2 zm in
       (
         match v1, v2 with
-          | ArrayV (n1, vl), NumV n2 
+          | (ArrayV (n1, vl), NumV n2)
             when n1 > n2 && n2 >= 0 -> List.nth vl n2
 
           | _ -> failwith (
@@ -143,11 +144,29 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
           )
       )
 
-    | Ast.Tuple (_, _) -> failwith "Not Implemented!"
+    | Ast.Tuple (e1, e2) -> 
+      let v1: Value.t = interp_expr e1 zm in
+      let v2: Value.t = interp_expr e2 zm in
+      TupleV (v1, v2)
 
-    | Ast.First (_) -> failwith "Not Implemented!"
+    | Ast.First (e1)
+    | Ast.Second (e1) ->
+      let v: Value.t = interp_expr e1 zm in
+      (
+        match v with
+          | TupleV (v1, v2) -> 
+            (
+              match e with
+                | Ast.First _ -> v1
+                | Ast.Second _ -> v2 
+                | _ -> failwith "Unreachable!" [@coverage off]
+            )
 
-    | Ast.Second (_) -> failwith "Not Implemented!"
+          | _ -> failwith (
+            F.asprintf "Not a tuple: %a"
+            Ast.pp_expr e1
+          )
+      )
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
@@ -269,7 +288,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
       let v1: Value.t = interp_expr e1 zm in
       (
         match vx, v1 with
-          | ArrayV (n1, vl1), NumV n2 
+          | (ArrayV (n1, vl1), NumV n2)
             when n1 > n2 && n2 >= 0 ->
             let vl: (Value.t list) = List.mapi 
               (
