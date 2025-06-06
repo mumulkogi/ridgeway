@@ -1,0 +1,28 @@
+(library
+ (public_name hw14_test)
+ (name hw14_test)
+ ; Specifies whether the library modules should be available only through 
+ ; the top-level library module, or if they should all be exposed at the top level.
+ ;
+ ; The default is `true`, and it’s highly recommended to keep it this way. 
+ ; Because OCaml top-level modules must all be unique when linking an executables, 
+ ; polluting the top-level namespace will make your library unusable 
+ ; with other libraries if there is a module name clash.
+ ; (wrapped true)
+ (inline_tests)
+ (preprocess
+  (pps ppx_inline_test))
+ ; eval $(opam env --switch=5.1.1)
+ ; dune runtest --instrument-with bisect_ppx --force
+ ; bisect-ppx-report summary
+ (instrumentation
+  (backend bisect_ppx)))
+
+; When <mode> is unqualified, Dune will assume that 
+; the current directory’s subdirectories are part of the same group of directories. 
+; In particular, Dune will simultaneously scan all these directories 
+; when looking for OCaml/Reason files. 
+; 
+; This allows you to split a library between several directories.
+
+(include_subdirs unqualified)
