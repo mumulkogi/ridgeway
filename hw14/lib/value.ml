@@ -4,5 +4,7 @@ type t =
   | NumV of int
   | BoolV of bool
   | AddrV of int
+  | ArrayV of (int * (t list))
+  | TupleV of (t * t)
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

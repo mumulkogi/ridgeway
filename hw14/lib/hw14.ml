@@ -9,7 +9,26 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
   match e with
     | Ast.Num n -> NumV n
 
-    | Ast.Array (_, _, _) -> failwith "Not Implemented!"
+    | Ast.Array (_, e1, e2) -> 
+      let v1: Value.t = interp_expr e1 zm in
+      (
+        match v1 with
+          | NumV n -> 
+            if n > 0 then
+              let v2: Value.t = interp_expr e2 zm in
+              ArrayV (n, List.init n (fun _ -> v2))
+            else (
+              failwith (
+                F.asprintf "Invalid array length: %a"
+                Ast.pp_expr e
+              ) [@coverage off]
+            )
+
+          | _ -> failwith (
+            F.asprintf "Not a number: %a"
+            Ast.pp_expr e1
+          )
+      )
 
     | Ast.Ref x -> AddrV (Env.find x z)
 
@@ -18,6 +37,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
       (
         match v with
           | AddrV a -> Mem.find a m
+
           | _ -> failwith (
             F.asprintf "Not an address: %a"
             Ast.pp_expr x
@@ -44,6 +64,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
                 | Ast.Gt _ -> BoolV (n1 > n2)
                 | _ -> failwith "Unreachable!" [@coverage off]
             )
+
           | _ -> failwith (
             F.asprintf "Not a number: %a"
             Ast.pp_expr e
@@ -58,6 +79,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
           | (NumV n1, NumV n2) -> BoolV (n1 == n2)
           | (BoolV b1, BoolV b2) -> BoolV (b1 == b2)
           | (AddrV a1, AddrV a2) -> BoolV (a1 == a2)
+          | (ArrayV vl1, ArrayV vl2) -> BoolV (vl1 = vl2)
           | _ -> BoolV false
       )
 
@@ -77,6 +99,7 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
                   )
               )
             ) else v1
+
           | _ -> failwith (
             F.asprintf "Not a bool: %a"
             Ast.pp_expr e
@@ -99,13 +122,26 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
                   )
               )
             ) else v1
+
           | _ -> failwith (
             F.asprintf "Not a bool: %a"
             Ast.pp_expr e
           )
       )
 
-    | Ast.Index (_, _) -> failwith "Not Implemented!"
+    | Ast.Index (e1, e2) ->
+      let v1: Value.t = interp_expr e1 zm in
+      let v2: Value.t = interp_expr e2 zm in
+      (
+        match v1, v2 with
+          | ArrayV (n1, vl), NumV n2 
+            when n1 > n2 && n2 >= 0 -> List.nth vl n2
+
+          | _ -> failwith (
+            F.asprintf "Invalid array indexing: %a"
+            Ast.pp_expr e
+          )
+      )
 
     | Ast.Tuple (_, _) -> failwith "Not Implemented!"
 
@@ -124,7 +160,12 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
       let a: Env.addr = AddrManager.new_addr () in
       ((Env.add x a z), (Mem.add a v m))
 
-    | Ast.DefArrInitStmt (_, _, _) -> failwith "Not Implemented!"
+    | Ast.DefArrInitStmt (_, x, el) ->
+      let n: int = List.length el in
+      let vl: (Value.t list) = List.map (fun e -> interp_expr e zm) el in
+      let a: Env.addr = AddrManager.new_addr () in
+      let v: Value.t = ArrayV (n, vl) in
+      ((Env.add x a z), (Mem.add a v m))
 
     | Ast.StoreStmt (e1, e2) ->
       let v1: Value.t = interp_expr e1 zm in
@@ -133,6 +174,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
           | AddrV a ->
             let v2: Value.t = interp_expr e2 zm in
             (z, (Mem.add a v2 m))
+
           | _ -> failwith (
             F.asprintf "Not an address: %a"
             Ast.pp_expr e1
@@ -146,6 +188,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
           | BoolV b -> 
             let (_, m1) = interp_stmts (if b then sl1 else sl2) u zm in
             (z, m1)
+
           | _ -> failwith (
             F.asprintf "Not a bool: %a"
             Ast.pp_expr e
@@ -163,6 +206,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
                 (z, m2)
               ) else zm
             )
+
           | _ -> failwith (
             F.asprintf "Not a bool: %a"
             Ast.pp_expr e
@@ -215,10 +259,32 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
           | Some (n) ->
             let v: Value.t = (NumV n) in
             (z, (Mem.add a v m))
+
           | None -> failwith "Not Implemented!"
       ) [@coverage off]
 
-    | Ast.UpdateStmt (_, _, _) -> failwith "Not Implemented!"
+    | Ast.UpdateStmt (x, e1, e2) ->
+      let a: Env.addr = Env.find x z in
+      let vx: Value.t = interp_expr (Ast.Id x) zm in
+      let v1: Value.t = interp_expr e1 zm in
+      (
+        match vx, v1 with
+          | ArrayV (n1, vl1), NumV n2 
+            when n1 > n2 && n2 >= 0 ->
+            let vl: (Value.t list) = List.mapi 
+              (
+                fun i v -> 
+                  if i = n2 then (interp_expr e2 zm)
+                  else v
+              ) vl1 in
+            let v: Value.t = ArrayV (n1, vl) in
+            (z, (Mem.add a v m))
+          
+          | _ -> failwith (
+            F.asprintf "Invalid array update: %a"
+            Ast.pp_stmt s
+          )
+      )
 
 and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
   (Env.t * Mem.t) =

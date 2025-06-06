@@ -477,6 +477,61 @@ x = input();    \
     | End_of_file -> true
     | _ -> false
 
+let%test "HwX_interp_prog_21" = HwX.interp_prog (
+  ParserMain.parse 
+"                             \
+def x: int array = int[3](0); \
+                              \
+x[0] = 10;                    \
+x[1] = x[0] + 1;              \
+"
+  ) =
+  (
+    [("x", 0)],
+    [(0, Value.ArrayV (3, [Value.NumV 10; Value.NumV 11; Value.NumV 0]))]
+  )
+
+let%test "HwX_interp_prog_22" = 
+  try
+    let _ = HwX.interp_prog (
+      ParserMain.parse 
+"                              \
+def x: int array = int[true](0); \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "Not a number: true"
+
+let%test "HwX_interp_prog_23" = HwX.interp_prog (
+  ParserMain.parse 
+"                             \
+def x: int array = int[1](0); \
+def y: int array = int[1](1); \
+                              \
+if (x == y) {                 \
+  x[0] = 1;                   \
+}                             \
+"
+  ) =
+  (
+    [("y", 1); ("x", 0)],
+    [
+      (1, Value.ArrayV (1, [Value.NumV 1;]));
+      (0, Value.ArrayV (1, [Value.NumV 0;]))
+    ]
+  )
+
+let%test "HwX_interp_prog_24" = HwX.interp_prog (
+  ParserMain.parse 
+"                               \
+def x: int array = { 1, 2, 3 }; \
+"
+  ) =
+  (
+    [("x", 0)],
+    [(0, Value.ArrayV (3, [Value.NumV 1; Value.NumV 2; Value.NumV 3]))]
+  )
+
 (* [`HwXt.tc_expr`] :::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let%test "HwXt_tc_expr_ref_00" = HwXt.tc_expr 
