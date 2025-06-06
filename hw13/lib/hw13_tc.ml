@@ -142,7 +142,7 @@ let rec tc_stmt (s: Ast.stmt)
         )
       )
       
-    | InputStmt (x) ->
+    | Ast.InputStmt (x) ->
       let yx: Ast.typ = (tc_expr (Ast.Id x) h) in
       if yx = Ast.TInt then h
       else failwith_stmt s

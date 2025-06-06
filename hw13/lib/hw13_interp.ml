@@ -196,7 +196,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
         )
       )
 
-    | InputStmt (x) ->
+    | Ast.InputStmt (x) ->
       let a: Env.addr = Env.find x z in 
       (
         match (read_int_opt ()) with

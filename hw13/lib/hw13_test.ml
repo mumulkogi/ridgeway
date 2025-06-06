@@ -1,6 +1,6 @@
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
-module HwX = Hw13
+module HwX = Hw13_interp
 module HwXt = Hw13_tc
 
 (* [`HwX.interp_expr`] ::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
@@ -617,7 +617,7 @@ def x: int = true + 1; \
 "
     ) in false
   with
-    | Failure msg -> msg = "[Ill-typed] int x = true + 1;"
+    | Failure msg -> msg = "[Ill-typed] true + 1"
 
 let%test "HwXt_tc_prog_03" = 
   try
@@ -631,7 +631,7 @@ x = x && y;           \
 "
     ) in false
   with
-    | Failure msg -> msg = "[Ill-typed] *&x = x && y;"
+    | Failure msg -> msg = "[Ill-typed] x && y"
 
 let%test "HwXt_tc_prog_04" = HwXt.tc_prog (
   ParserMain.parse 
