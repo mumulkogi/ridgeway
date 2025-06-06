@@ -9,6 +9,8 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
   match e with
     | Ast.Num n -> NumV n
 
+    | Ast.Array (_, _, _) -> failwith "Not Implemented!"
+
     | Ast.Ref x -> AddrV (Env.find x z)
 
     | Ast.Deref x ->
@@ -103,6 +105,14 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
           )
       )
 
+    | Ast.Index (_, _) -> failwith "Not Implemented!"
+
+    | Ast.Tuple (_, _) -> failwith "Not Implemented!"
+
+    | Ast.First (_) -> failwith "Not Implemented!"
+
+    | Ast.Second (_) -> failwith "Not Implemented!"
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
@@ -113,6 +123,8 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
       let v: Value.t = interp_expr e zm in
       let a: Env.addr = AddrManager.new_addr () in
       ((Env.add x a z), (Mem.add a v m))
+
+    | Ast.DefArrInitStmt (_, _, _) -> failwith "Not Implemented!"
 
     | Ast.StoreStmt (e1, e2) ->
       let v1: Value.t = interp_expr e1 zm in
@@ -196,7 +208,7 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
         )
       )
 
-    | InputStmt (x) ->
+    | Ast.InputStmt (x) ->
       let a: Env.addr = Env.find x z in 
       (
         match (read_int_opt ()) with
@@ -205,6 +217,8 @@ let rec interp_stmt (s: Ast.stmt) (u: Fstore.t) (zm: (Env.t * Mem.t)):
             (z, (Mem.add a v m))
           | None -> failwith "Not Implemented!"
       ) [@coverage off]
+
+    | Ast.UpdateStmt (_, _, _) -> failwith "Not Implemented!"
 
 and interp_stmts (sl: Ast.stmt list) (u: Fstore.t) (zm: (Env.t * Mem.t)):
   (Env.t * Mem.t) =

@@ -16,6 +16,8 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
   match e with
     | Ast.Num _ -> Ast.TInt
 
+    | Ast.Array (_, _, _) -> failwith "Not Implemented!"
+
     | Ast.Ref x -> Ast.TPtr (tc_expr (Ast.Id x) h)
 
     | Ast.Deref x ->
@@ -71,6 +73,14 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
           | _ -> failwith_expr e
       )
 
+    | Ast.Index (_, _) -> failwith "Not Implemented!"
+
+    | Ast.Tuple (_, _) -> failwith "Not Implemented!"
+
+    | Ast.First (_) -> failwith "Not Implemented!"
+
+    | Ast.Second (_) -> failwith "Not Implemented!"
+
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
 
 let rec tc_stmt (s: Ast.stmt) 
@@ -84,6 +94,8 @@ let rec tc_stmt (s: Ast.stmt)
         if (ye = y) then (LocalTEnv.add x y h)
         else failwith_stmt s
       )
+
+    | Ast.DefArrInitStmt (_, _, _) -> failwith "Not Implemented!"
 
     | Ast.StoreStmt (e1, e2) ->
       let ye1: Ast.typ = (tc_expr e1 h) in
@@ -142,10 +154,12 @@ let rec tc_stmt (s: Ast.stmt)
         )
       )
       
-    | InputStmt (x) ->
+    | Ast.InputStmt (x) ->
       let yx: Ast.typ = (tc_expr (Ast.Id x) h) in
       if yx = Ast.TInt then h
       else failwith_stmt s
+
+    | Ast.UpdateStmt (_, _, _) -> failwith "Not Implemented!"
 
 and tc_stmts (sl: Ast.stmt list) 
              (gh: (GlobalTEnv.t * LocalTEnv.t)) 
