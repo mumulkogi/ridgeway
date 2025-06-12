@@ -496,13 +496,24 @@ let%test "HwX_interp_prog_22" =
     let _ = HwX.interp_prog (
       ParserMain.parse 
 "                              \
+def x: int array = int[-1](0); \
+"
+    ) in false
+  with
+    | Failure msg -> msg = "Invalid argument: -1"
+
+let%test "HwX_interp_prog_23" = 
+  try
+    let _ = HwX.interp_prog (
+      ParserMain.parse 
+"                              \
 def x: int array = int[true](0); \
 "
     ) in false
   with
     | Failure msg -> msg = "Not a number: true"
 
-let%test "HwX_interp_prog_23" = HwX.interp_prog (
+let%test "HwX_interp_prog_24" = HwX.interp_prog (
   ParserMain.parse 
 "                             \
 def x: int array = int[1](0); \
@@ -521,7 +532,7 @@ if (x == y) {                 \
     ]
   )
 
-let%test "HwX_interp_prog_24" = 
+let%test "HwX_interp_prog_25" = 
   try
     let _ = HwX.interp_prog (
       ParserMain.parse 
@@ -534,7 +545,7 @@ x[0] = x[true];               \
   with
     | Failure msg -> msg = "Invalid array indexing: x[true]"
 
-let%test "HwX_interp_prog_25" = HwX.interp_prog (
+let%test "HwX_interp_prog_26" = HwX.interp_prog (
   ParserMain.parse 
 "                               \
 def x: int array = { 1, 2, 3 }; \
@@ -545,7 +556,7 @@ def x: int array = { 1, 2, 3 }; \
     [(0, Value.ArrayV (3, [Value.NumV 1; Value.NumV 2; Value.NumV 3]))]
   )
 
-let%test "HwX_interp_prog_26" = 
+let%test "HwX_interp_prog_27" = 
   try
     let _ = HwX.interp_prog (
       ParserMain.parse 
@@ -558,7 +569,7 @@ x[true] = 1;                  \
   with
     | Failure msg -> msg = "Invalid array update: x[true] = 1;"
 
-let%test "HwX_interp_prog_27" = 
+let%test "HwX_interp_prog_28" = 
   try
     let _ = HwX.interp_prog (
       ParserMain.parse 
@@ -1106,7 +1117,7 @@ def x: int = 0; \
 "
     ) in false
   with
-    | Failure msg -> msg = "[Ill-typed] x"
+    | Failure msg -> msg = "[Ill-typed] x._1"
 
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)

@@ -19,9 +19,9 @@ let rec interp_expr (e: Ast.expr) (zm: (Env.t * Mem.t)): Value.t =
               ArrayV (n, List.init n (fun _ -> v2))
             else (
               failwith (
-                F.asprintf "Invalid array length: %a"
-                Ast.pp_expr e
-              ) [@coverage off]
+                F.asprintf "Invalid argument: %a"
+                Ast.pp_expr e1
+              )
             )
 
           | _ -> failwith (

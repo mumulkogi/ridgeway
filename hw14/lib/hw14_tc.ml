@@ -104,7 +104,7 @@ let rec tc_expr (e: Ast.expr) (h: LocalTEnv.t): Ast.typ =
                 | _ -> failwith "Unreachable!" [@coverage off]
             )
 
-          | _ -> failwith_expr e1
+          | _ -> failwith_expr e
       )
 
 (* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: *)
